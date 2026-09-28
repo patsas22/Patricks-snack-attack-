@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Patrick's Snack Attack! - Fart Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap');
+        
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #030712;
+            color: #f8fafc;
+            overflow: hidden;
+        }
+
+        .font-game {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Glassmorphism Panel FX */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-panel-accent {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-bounce {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-bounce:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .btn-bounce:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.6);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 0.9);
+        }
+
+        /* Spinner Reel Styles */
+        .case-reel-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 150px;
+            background: radial-gradient(circle at center, rgba(30, 41, 59, 0.8) 0%, rgba(3, 7, 18, 0.95) 100%);
+            border: 2px solid rgba(245, 158, 11, 0.5);
+            border-radius: 1.25rem;
+            box-shadow: inset 0 0 35px rgba(0,0,0,0.9), 0 0 25px rgba(245, 158, 11, 0.15);
+        }
+
+        .case-reel-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444;
+            z-index: 25;
+            transform: translateX(-50%);
+        }
+
+        .case-reel-line::before, .case-reel-line::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+        }
+
+        .case-reel-line::before {
+            top: 0;
+            border-top: 10px solid #ef4444;
+        }
+
+        .case-reel-line::after {
+            bottom: 0;
+            border-bottom: 10px solid #ef4444;
+        }
+
+        .case-reel-track {
+            display: flex;
+            position: absolute;
+            left: 0;
+            top: 15px;
+            height: 120px;
+            will-change: transform;
+        }
+
+        .case-item-card {
+            flex-shrink: 0;
+            width: 110px;
+            height: 120px;
+            margin-right: 10px;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        /* Rarity Visual Polish */
+        .rarity-common { 
+            border: 2px solid #3b82f6; 
+            background: radial-gradient(circle at top, rgba(59,130,246,0.25) 0%, rgba(15,23,42,0.95) 80%); 
+            box-shadow: inset 0 0 12px rgba(59,130,246,0.2);
+        }
+        .rarity-rare { 
+            border: 2px solid #a855f7; 
+            background: radial-gradient(circle at top, rgba(168,85,247,0.3) 0%, rgba(15,23,42,0.95) 80%); 
+            box-shadow: inset 0 0 12px rgba(168,85,247,0.25);
+        }
+        .rarity-mythic { 
+            border: 2px solid #ec4899; 
+            background: radial-gradient(circle at top, rgba(236,72,153,0.35) 0%, rgba(15,23,42,0.95) 80%); 
+            box-shadow: inset 0 0 15px rgba(236,72,153,0.3);
+        }
+        .rarity-legendary { 
+            border: 2px solid #f97316; 
+            background: radial-gradient(circle at top, rgba(249,115,22,0.4) 0%, rgba(15,23,42,0.95) 80%); 
+            box-shadow: inset 0 0 18px rgba(249,115,22,0.35), 0 0 10px rgba(249,115,22,0.2);
+        }
+        .rarity-gold { 
+            border: 2px solid #eab308; 
+            background: radial-gradient(circle at top, rgba(234,179,8,0.45) 0%, rgba(15,23,42,0.95) 80%); 
+            box-shadow: inset 0 0 20px rgba(234,179,8,0.4), 0 0 15px rgba(234,179,8,0.3); 
+        }
+
+        canvas {
+            image-rendering: pixelated;
+        }
+
+        /* Glow animation for header */
+        @keyframes headerGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+            50% { text-shadow: 0 0 35px rgba(239, 68, 68, 0.7); }
+        }
+
+        .title-glow {
+            animation: headerGlow 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-center items-center relative overflow-hidden select-none bg-slate-950">
+
+    <!-- Ambient Background Glows -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Main Game Canvas Container -->
+    <div id="game-container" class="relative w-full h-full max-w-6xl max-h-[850px] flex justify-center items-center p-2 sm:p-4">
+        <canvas id="gameCanvas" class="w-full h-full rounded-3xl shadow-2xl border border-slate-800 bg-slate-900"></canvas>
+
+        <!-- Gameplay HUD Top Bar Overlay -->
+        <div id="hud" class="absolute top-6 left-6 right-6 flex justify-between items-center pointer-events-none hidden z-10">
+            <!-- Left Info: Score, Wave, Calories -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl flex items-center gap-2.5 border-amber-500/20">
+                    <span class="text-xl sm:text-2xl">💨</span>
+                    <div>
+                        <div class="text-[10px] sm:text-xs uppercase tracking-wider text-amber-400/80 font-bold">Score</div>
+                        <div id="hud-score" class="text-base sm:text-xl font-game text-white leading-tight">0</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl flex items-center gap-2.5 border-purple-500/20">
+                    <span class="text-xl sm:text-2xl">⭐</span>
+                    <div>
+                        <div class="text-[10px] sm:text-xs uppercase tracking-wider text-purple-400/80 font-bold">Wave</div>
+                        <div id="hud-wave" class="text-base sm:text-xl font-game text-white leading-tight">1</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl flex items-center gap-2.5 border-emerald-500/20">
+                    <span class="text-xl sm:text-2xl">🪙</span>
+                    <div>
+                        <div class="text-[10px] sm:text-xs uppercase tracking-wider text-emerald-400/80 font-bold">Calories</div>
+                        <div id="hud-calories" class="text-base sm:text-xl font-game text-emerald-300 leading-tight">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Info: Health, Soda/Chili, Equipped Skin, Reset & Audio -->
+            <div class="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+                <!-- Equipped Skin Badge -->
+                <div id="hud-skin-badge" class="glass-panel px-3 py-2 rounded-2xl flex items-center gap-2 border-amber-500/20 text-amber-300 font-game text-xs sm:text-sm">
+                    <span id="hud-skin-icon" class="text-base sm:text-lg">⭐</span>
+                    <span id="hud-skin-name" class="hidden md:inline">Default Patrick</span>
+                </div>
+
+                <!-- Hearts Container -->
+                <div id="hud-hearts" class="glass-panel px-3 py-2 sm:px-4 sm:py-2 rounded-2xl flex items-center gap-1 border-red-500/20">
+                    <!-- Dynamic Hearts -->
+                </div>
+
+                <!-- Special Charges HUD -->
+                <div class="glass-panel px-3 py-2 rounded-2xl flex items-center gap-2 border-blue-500/20">
+                    <span class="text-base sm:text-lg">🥤</span>
+                    <span id="hud-soda-count" class="font-game text-sm sm:text-lg text-blue-300">0</span>
+                    <span class="text-base sm:text-lg ml-1">🌶️</span>
+                    <span id="hud-chili-count" class="font-game text-sm sm:text-lg text-red-400">1</span>
+                </div>
+
+                <!-- Reset Button -->
+                <button id="btn-reset" title="Reset Level (R)" class="glass-panel p-2.5 rounded-2xl hover:bg-slate-800/80 text-amber-400 btn-bounce active:scale-90 transition">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+
+                <!-- Music / Audio Toggle Button -->
+                <button id="btn-audio-toggle" title="Toggle Sound" class="glass-panel p-2.5 rounded-2xl hover:bg-slate-800/80 text-emerald-400 btn-bounce active:scale-90 transition">
+                    <svg id="icon-sound-on" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                    <svg id="icon-sound-off" class="w-5 h-5 sm:w-6 sm:h-6 hidden text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Boss Health Bar Overlay -->
+        <div id="boss-hud" class="absolute top-20 left-1/2 -translate-x-1/2 w-3/4 max-w-lg glass-panel p-3.5 rounded-2xl border-red-500/40 opacity-60 hidden z-10 flex flex-col gap-2 shadow-2xl">
+            <div class="flex justify-between items-center text-sm font-game">
+                <span id="boss-name" class="text-red-400 tracking-wide uppercase">Dr. Treadmill</span>
+                <span id="boss-hp-text" class="text-slate-200">500 / 500</span>
+            </div>
+            <div class="w-full bg-slate-950/80 h-3.5 rounded-full overflow-hidden p-0.5 border border-red-900/50">
+                <div id="boss-hp-fill" class="bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 h-full rounded-full transition-all duration-200" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Overlay Screen: Main Menu -->
+        <div id="menu-overlay" class="absolute inset-0 glass-panel rounded-3xl flex flex-col justify-center items-center p-6 sm:p-8 z-20 text-center bg-slate-950/85 backdrop-blur-xl border border-slate-800/80">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-wider mb-4">
+                <span>💨</span> Fart Edition
+            </div>
+
+            <div class="animate-bounce mb-3 text-7xl sm:text-8xl filter drop-shadow-lg">💨</div>
+            <h1 class="text-4xl sm:text-6xl font-game text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 title-glow mb-3">
+                Patrick's Snack Attack!
+            </h1>
+            <p class="text-slate-400 max-w-md text-sm sm:text-base mb-8 font-medium leading-relaxed">
+                Devour high-calorie snacks, unlock funny Patrick skins, and blast through gym bosses with fart power!
+            </p>
+
+            <!-- Main Navigation Actions -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 w-full max-w-xl mb-6">
+                <button id="btn-start" class="col-span-2 py-4 px-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-game text-xl rounded-2xl shadow-lg shadow-emerald-500/25 border border-emerald-300/30 btn-bounce flex items-center justify-center gap-2">
+                    <span>🎮</span> PLAY GAME
+                </button>
+                <button id="btn-cases-open" class="py-4 px-4 bg-gradient-to-br from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-game text-lg rounded-2xl shadow-lg shadow-amber-500/20 border border-amber-300/30 btn-bounce flex items-center justify-center gap-1.5">
+                    <span>📦</span> CASES
+                </button>
+                <button id="btn-inventory-open" class="py-4 px-4 bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-game text-lg rounded-2xl shadow-lg shadow-purple-500/20 border border-purple-400/30 btn-bounce flex items-center justify-center gap-1.5">
+                    <span>🎒</span> SKINS
+                </button>
+            </div>
+
+            <!-- Secondary Actions -->
+            <div class="flex gap-3">
+                <button id="btn-shop-open" class="px-5 py-2.5 glass-panel-accent hover:bg-slate-800 text-amber-400 font-bold rounded-xl text-sm border border-slate-700/60 btn-bounce flex items-center gap-2">
+                    <span>🛒</span> Upgrade Shop
+                </button>
+                <button id="btn-how-to" class="px-5 py-2.5 glass-panel-accent hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-sm border border-slate-700/60 btn-bounce flex items-center gap-2">
+                    <span>📖</span> How to Play
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal: Case Unboxing View -->
+        <div id="case-overlay" class="absolute inset-0 glass-panel rounded-3xl flex flex-col justify-between p-6 sm:p-8 z-30 hidden bg-slate-950/95 border border-amber-500/30 shadow-2xl overflow-y-auto">
+            <div>
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800/80">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-2xl">📦</div>
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-game text-amber-400">SNACK CASE UNBOXING</h2>
+                            <p class="text-xs text-slate-400 font-semibold">Test your luck for rare Patrick skins</p>
+                        </div>
+                    </div>
+                    <div class="glass-panel px-4 py-2 rounded-2xl flex items-center gap-2 border-emerald-500/30">
+                        <span class="text-xl">🪙</span>
+                        <span id="case-calorie-balance" class="text-xl sm:text-2xl font-game text-emerald-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Case Tier Selection -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    <button id="case-tier-standard" class="case-tier-btn p-3 rounded-2xl glass-panel border-2 border-amber-500 bg-amber-500/10 text-left transition hover:bg-amber-500/20">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-game text-amber-300 text-sm">📦 Standard Case</span>
+                            <span class="text-xs font-bold text-emerald-400">🪙 1,000</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400">Common: 50% | Rare: 30% | Mythic: 12% | Legendary: 6% | Gold: 2%</div>
+                    </button>
+                    <button id="case-tier-jumbo" class="case-tier-btn p-3 rounded-2xl glass-panel border border-slate-800 text-left transition hover:bg-slate-800/60">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-game text-purple-300 text-sm">🎁 Jumbo Case</span>
+                            <span class="text-xs font-bold text-emerald-400">🪙 2,500</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400">Common: 30% | Rare: 35% | Mythic: 20% | Legendary: 10% | Gold: 5%</div>
+                    </button>
+                    <button id="case-tier-patriot" class="case-tier-btn p-3 rounded-2xl glass-panel border border-slate-800 text-left transition hover:bg-slate-800/60">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-game text-red-400 text-sm">🗽 Patriot Case</span>
+                            <span class="text-xs font-bold text-emerald-400">🪙 5,000</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400">Common: 5% | Rare: 30% | Mythic: 35% | Legendary: 18% | Gold: 12%</div>
+                    </button>
+                </div>
+
+                <!-- Reel Animation Display -->
+                <div class="my-4">
+                    <div id="case-reel-container" class="case-reel-container">
+                        <div class="case-reel-line"></div>
+                        <div id="case-reel-track" class="case-reel-track">
+                            <!-- Dynamic Cards Generated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unbox Result Modal Display -->
+                <div id="unbox-result-card" class="hidden my-2 p-5 rounded-2xl glass-panel border-2 text-center flex flex-col items-center justify-center animate-fade-in shadow-2xl">
+                    <div id="unbox-result-icon" class="text-6xl mb-2 filter drop-shadow-md">⭐</div>
+                    <div id="unbox-result-name" class="font-game text-2xl sm:text-3xl text-amber-300 mb-0.5">Skin Name</div>
+                    <div id="unbox-result-rarity" class="text-xs uppercase font-bold tracking-widest text-slate-400 mb-4">Rarity Tier</div>
+                    <div class="flex gap-3">
+                        <button id="btn-result-keep" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 font-game text-slate-950 rounded-xl btn-bounce shadow-lg shadow-emerald-500/20">
+                            KEEP IN INVENTORY
+                        </button>
+                        <button id="btn-result-sell" class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 font-game text-white rounded-xl btn-bounce shadow-lg shadow-red-500/20">
+                            QUICK SELL (🪙 0)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Case Info & Droplist preview -->
+                <div class="glass-panel-accent p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-400 mt-2">
+                    <div class="font-bold text-slate-300 mb-2 flex items-center gap-1.5">
+                        <span>🎯</span> Active Case Drop Odds:
+                    </div>
+                    <div id="case-odds-display" class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                        <div class="px-2 py-1.5 rounded-xl bg-blue-950/60 text-blue-300 border border-blue-500/30 font-semibold">Common (50%)</div>
+                        <div class="px-2 py-1.5 rounded-xl bg-purple-950/60 text-purple-300 border border-purple-500/30 font-semibold">Rare (30%)</div>
+                        <div class="px-2 py-1.5 rounded-xl bg-pink-950/60 text-pink-300 border border-pink-500/30 font-semibold">Mythic (12%)</div>
+                        <div class="px-2 py-1.5 rounded-xl bg-orange-950/60 text-orange-300 border border-orange-500/30 font-semibold">Legendary (6%)</div>
+                        <div class="px-2 py-1.5 rounded-xl bg-yellow-950/60 text-yellow-300 border border-yellow-500/40 font-bold">★ GOLD (2%)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action Buttons -->
+            <div class="flex justify-between items-center pt-4 border-t border-slate-800/80">
+                <button id="btn-open-case" class="px-8 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 font-game text-slate-950 rounded-2xl text-lg sm:text-xl shadow-lg shadow-amber-500/25 border border-yellow-300/40 btn-bounce flex items-center gap-2">
+                    <span>🔓</span> UNLOCK CASE (<span id="case-cost-text">🪙 1000</span>)
+                </button>
+                <button id="btn-case-close" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 font-game text-slate-300 rounded-2xl text-base btn-bounce border border-slate-700">
+                    BACK TO MENU
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal: Player Skins & Inventory View -->
+        <div id="inventory-overlay" class="absolute inset-0 glass-panel rounded-3xl flex flex-col justify-between p-6 sm:p-8 z-30 hidden bg-slate-950/95 border border-purple-500/30 shadow-2xl">
+            <div>
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-800/80">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-2xl">🎒</div>
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-game text-purple-400">PATRICK'S SKIN INVENTORY</h2>
+                            <p class="text-xs text-slate-400 font-semibold">Equip unlocked skins for custom in-game sprites</p>
+                        </div>
+                    </div>
+                    <div class="glass-panel px-4 py-2 rounded-2xl flex items-center gap-2 border-emerald-500/30">
+                        <span class="text-xl">🪙</span>
+                        <span id="inv-calorie-balance" class="text-xl sm:text-2xl font-game text-emerald-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Inventory Grid -->
+                <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 max-h-[50vh] overflow-y-auto pr-2">
+                    <!-- Dynamic Inventory Cards -->
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-800/80">
+                <button id="btn-inventory-close" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 font-game text-slate-300 rounded-2xl text-base btn-bounce border border-slate-700">
+                    BACK TO MENU
+                </button>
+            </div>
+        </div>
+
+        <!-- Upgrades Shop Modal -->
+        <div id="shop-overlay" class="absolute inset-0 glass-panel rounded-3xl flex flex-col justify-between p-6 sm:p-8 z-30 hidden bg-slate-950/95 border border-amber-500/30 shadow-2xl">
+            <div>
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-800/80">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-2xl">🛒</div>
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-game text-amber-400">PATRICK'S UPGRADE SHOP</h2>
+                            <p class="text-xs text-slate-400 font-semibold">Boost your stats using collected Calories</p>
+                        </div>
+                    </div>
+                    <div class="glass-panel px-4 py-2 rounded-2xl flex items-center gap-2 border-emerald-500/30">
+                        <span class="text-xl">🪙</span>
+                        <span id="shop-calorie-balance" class="text-xl sm:text-2xl font-game text-emerald-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Upgrades List -->
+                <div id="shop-items-container" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[50vh] overflow-y-auto pr-2">
+                    <!-- Dynamic Upgrade Cards inserted via JS -->
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
+                <button id="btn-shop-close" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 font-game text-slate-300 rounded-2xl text-base btn-bounce border border-slate-700">
+                    BACK TO MENU
+                </button>
+            </div>
+        </div>
+
+        <!-- How To Play Modal -->
+        <div id="how-overlay" class="absolute inset-0 glass-panel rounded-3xl flex flex-col justify-between p-6 sm:p-8 z-30 hidden bg-slate-950/95 border border-slate-800">
+            <div>
+                <div class="flex items-center gap-3 mb-6 pb-3 border-b border-slate-800">
+                    <div class="p-2.5 rounded-2xl bg-slate-800 text-amber-400 text-2xl">📖</div>
+                    <h2 class="text-2xl sm:text-3xl font-game text-amber-400">HOW TO PLAY</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-300">
+                    <div class="glass-panel-accent p-4 rounded-2xl border border-slate-800">
+                        <h3 class="font-game text-amber-300 text-base mb-2 flex items-center gap-1.5">🎮 Controls</h3>
+                        <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+                            <li class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-mono font-bold">A / D</span> Move Left / Right</li>
+                            <li class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-mono font-bold">W / Space</span> Jump & Soda Fart Boosts (🥤)</li>
+                            <li class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-mono font-bold">S</span> Fast Downward Belly Slam</li>
+                            <li class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-mono font-bold">F / Shift</span> Chili Fart Blast (🌶️)</li>
+                            <li class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-mono font-bold">R</span> Reset Level / Wave</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glass-panel-accent p-4 rounded-2xl border border-slate-800">
+                        <h3 class="font-game text-amber-300 text-base mb-2 flex items-center gap-1.5">📦 Pickups, Cases & Skins</h3>
+                        <ul class="list-disc list-inside space-y-1.5 text-xs sm:text-sm text-slate-300">
+                            <li>Catch falling <b>Hearts (❤️)</b> to restore lost health during game!</li>
+                            <li>Unbox <b>Snack Cases</b> in higher tiers for better chances at rare skins.</li>
+                            <li>Collect new skins like <b>Gym Bro (Legendary)</b>, <b>Anime</b>, <b>Tsundere</b>, and <b>Sweetie Fox</b>!</li>
+                            <li>Sell extra skin duplicates to profit or trade up!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end pt-4 border-t border-slate-800">
+                <button id="btn-how-close" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 font-game text-slate-200 rounded-xl btn-bounce">
+                    GOT IT
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Over / Victory Overlay -->
+        <div id="gameover-overlay" class="absolute inset-0 glass-panel rounded-3xl flex flex-col justify-center items-center p-6 sm:p-8 z-30 hidden bg-slate-950/90 text-center border border-red-500/30">
+            <div id="gameover-emoji" class="text-7xl sm:text-8xl mb-2 filter drop-shadow-lg animate-bounce">💨</div>
+            <h2 id="gameover-title" class="text-4xl sm:text-5xl font-game text-red-500 mb-2">GAME OVER</h2>
+            <p id="gameover-desc" class="text-slate-300 text-base sm:text-lg mb-6">Patrick collapsed from workout exhaustion!</p>
+
+            <div class="glass-panel p-4 rounded-2xl flex gap-6 sm:gap-8 text-center mb-6 border-slate-800">
+                <div>
+                    <div class="text-[10px] sm:text-xs uppercase text-slate-400 font-bold">Final Score</div>
+                    <div id="final-score" class="text-2xl sm:text-3xl font-game text-amber-400">0</div>
+                </div>
+                <div>
+                    <div class="text-[10px] sm:text-xs uppercase text-slate-400 font-bold">Wave Reached</div>
+                    <div id="final-wave" class="text-2xl sm:text-3xl font-game text-purple-400">1</div>
+                </div>
+                <div>
+                    <div class="text-[10px] sm:text-xs uppercase text-slate-400 font-bold">Calories Earned</div>
+                    <div id="final-calories" class="text-2xl sm:text-3xl font-game text-emerald-400">+0</div>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button id="btn-restart" class="py-3.5 px-8 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 font-game text-xl text-slate-950 rounded-2xl shadow-lg shadow-emerald-500/25 btn-bounce">
+                    TRY AGAIN
+                </button>
+                <button id="btn-main-menu" class="py-3.5 px-6 bg-slate-800 hover:bg-slate-700 font-game text-xl text-slate-200 rounded-2xl border border-slate-700 btn-bounce">
+                    MAIN MENU
+                </button>
+            </div>
+        </div>
+
+        <!-- On-Screen Touch Mobile Controls Overlay -->
+        <div id="mobile-controls" class="absolute bottom-4 left-4 right-4 flex justify-between items-end pointer-events-none hidden z-10">
+            <!-- Left / Right D-Pad -->
+            <div class="flex gap-2 pointer-events-auto">
+                <button id="btn-touch-left" class="w-14 h-14 glass-panel bg-slate-800/90 rounded-2xl flex items-center justify-center text-2xl active:bg-amber-500/50">◀</button>
+                <button id="btn-touch-right" class="w-14 h-14 glass-panel bg-slate-800/90 rounded-2xl flex items-center justify-center text-2xl active:bg-amber-500/50">▶</button>
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex gap-2 pointer-events-auto">
+                <button id="btn-touch-slam" class="w-12 h-12 glass-panel bg-slate-800/90 rounded-2xl flex items-center justify-center text-xl active:bg-purple-500/50">⬇️</button>
+                <button id="btn-touch-fire" class="w-12 h-12 glass-panel bg-red-900/80 rounded-2xl flex items-center justify-center text-xl active:bg-red-500/50">🌶️</button>
+                <button id="btn-touch-jump" class="w-16 h-16 glass-panel bg-emerald-600/90 rounded-2xl flex items-center justify-center text-2xl active:bg-emerald-400/80">⬆️</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas Setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const GAME_WIDTH = 1000;
+        const GAME_HEIGHT = 600;
+
+        function resizeCanvas() {
+            canvas.width = GAME_WIDTH;
+            canvas.height = GAME_HEIGHT;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Player Data & Saves Engine
+        let saveData = {
+            calories: 0,
+            equippedSkin: 'default',
+            inventory: [
+                {
+                    instanceId: 'starter_default',
+                    skinId: 'default',
+                    snackTrak: 0,
+                    quickSellVal: 100
+                }
+            ],
+            upgrades: {
+                thickSkin: 0,
+                spicyBelch: 0,
+                magnet: 0,
+                shoes: 0
+            }
+        };
+
+        const SKINS_DATABASE = {
+            'default': {
+                id: 'default',
+                name: 'Default Patrick',
+                emoji: '⭐',
+                rarity: 'common',
+                rarityClass: 'rarity-common',
+                color: '#f472b6',
+                stroke: '#db2777',
+                bellyColor: '#fbcfe8',
+                hat: null,
+                valueRange: [150, 300]
+            },
+            'chef': {
+                id: 'chef',
+                name: 'Chef Patrick',
+                emoji: '👨‍🍳',
+                rarity: 'common',
+                rarityClass: 'rarity-common',
+                color: '#fed7aa',
+                stroke: '#f97316',
+                bellyColor: '#ffedd5',
+                hat: 'chef_hat',
+                valueRange: [250, 450]
+            },
+            'patrick_cosplayer': {
+                id: 'patrick_cosplayer',
+                name: 'Patrick Cosplayer',
+                emoji: '🎭',
+                rarity: 'common',
+                rarityClass: 'rarity-common',
+                color: '#38bdf8',
+                stroke: '#0284c7',
+                bellyColor: '#e0f2fe',
+                hat: 'cosplay_mask',
+                valueRange: [200, 400]
+            },
+            'tsundere': {
+                id: 'tsundere',
+                name: 'Tsundere Patrick',
+                emoji: '😤',
+                rarity: 'rare',
+                rarityClass: 'rarity-rare',
+                color: '#f43f5e',
+                stroke: '#be123c',
+                bellyColor: '#ffe4e6',
+                hat: 'twintails',
+                valueRange: [500, 850]
+            },
+            'patriot': {
+                id: 'patriot',
+                name: 'Patriot Patrick',
+                emoji: '🗽',
+                rarity: 'rare',
+                rarityClass: 'rarity-rare',
+                color: '#ef4444',
+                stroke: '#1d4ed8',
+                bellyColor: '#ffffff',
+                hat: 'top_hat',
+                valueRange: [750, 1200]
+            },
+            'ninja': {
+                id: 'ninja',
+                name: 'Ninja Patrick',
+                emoji: '🥷',
+                rarity: 'rare',
+                rarityClass: 'rarity-rare',
+                color: '#1e293b',
+                stroke: '#0f172a',
+                bellyColor: '#334155',
+                hat: 'ninja_mask',
+                valueRange: [500, 800]
+            },
+            'vampire': {
+                id: 'vampire',
+                name: 'Vampire Patrick',
+                emoji: '🧛',
+                rarity: 'rare',
+                rarityClass: 'rarity-rare',
+                color: '#be123c',
+                stroke: '#881337',
+                bellyColor: '#fecdd3',
+                hat: 'visor',
+                valueRange: [600, 900]
+            },
+            'anime': {
+                id: 'anime',
+                name: 'Anime Patrick',
+                emoji: '✨',
+                rarity: 'mythic',
+                rarityClass: 'rarity-mythic',
+                color: '#f472b6',
+                stroke: '#c084fc',
+                bellyColor: '#fff1f2',
+                hat: 'anime_hair',
+                aura: '#f472b6',
+                valueRange: [1100, 1700]
+            },
+            'sweetie_fox': {
+                id: 'sweetie_fox',
+                name: 'Sweetie Fox Patrick',
+                emoji: '🦊',
+                rarity: 'mythic',
+                rarityClass: 'rarity-mythic',
+                color: '#f97316',
+                stroke: '#c2410c',
+                bellyColor: '#ffedd5',
+                hat: 'fox_ears',
+                aura: '#f97316',
+                valueRange: [1300, 1900]
+            },
+            'cyberpunk': {
+                id: 'cyberpunk',
+                name: 'Cyberpunk Patrick',
+                emoji: '🤖',
+                rarity: 'mythic',
+                rarityClass: 'rarity-mythic',
+                color: '#06b6d4',
+                stroke: '#0891b2',
+                bellyColor: '#cffaff',
+                hat: 'visor',
+                aura: '#06b6d4',
+                valueRange: [1200, 1800]
+            },
+            'maharaja': {
+                id: 'maharaja',
+                name: 'Maharaja Patrick',
+                emoji: '👑',
+                rarity: 'mythic',
+                rarityClass: 'rarity-mythic',
+                color: '#a855f7',
+                stroke: '#7e22ce',
+                bellyColor: '#f3e8ff',
+                hat: 'turban',
+                aura: '#a855f7',
+                valueRange: [1500, 2200]
+            },
+            'gym_bro': {
+                id: 'gym_bro',
+                name: '★ Gym Bro Patrick',
+                emoji: '🏋️',
+                rarity: 'legendary',
+                rarityClass: 'rarity-legendary',
+                color: '#38bdf8',
+                stroke: '#0284c7',
+                bellyColor: '#e0f2fe',
+                hat: 'gym_belt',
+                aura: '#f97316',
+                valueRange: [2500, 3800]
+            },
+            'cosmic_god': {
+                id: 'cosmic_god',
+                name: '★ Cosmic God Patrick',
+                emoji: '🌌',
+                rarity: 'gold',
+                rarityClass: 'rarity-gold',
+                color: '#fbbf24',
+                stroke: '#d97706',
+                bellyColor: '#fef3c7',
+                hat: 'halo',
+                aura: '#f59e0b',
+                valueRange: [3500, 5000]
+            }
+        };
+
+        const CASE_TIERS = {
+            'standard': {
+                id: 'standard',
+                name: 'Standard Case',
+                cost: 1000,
+                odds: { common: 50, rare: 30, mythic: 12, legendary: 6, gold: 2 }
+            },
+            'jumbo': {
+                id: 'jumbo',
+                name: 'Jumbo Case',
+                cost: 2500,
+                odds: { common: 30, rare: 35, mythic: 20, legendary: 10, gold: 5 }
+            },
+            'patriot': {
+                id: 'patriot',
+                name: 'Patriot Case',
+                cost: 5000,
+                odds: { common: 5, rare: 30, mythic: 35, legendary: 18, gold: 12 }
+            }
+        };
+        let selectedCaseTier = 'standard';
+
+        function loadSaveData() {
+            try {
+                const loaded = localStorage.getItem('patricks_snack_attack_save_v2');
+                if (loaded) {
+                    const parsed = JSON.parse(loaded);
+                    saveData = { ...saveData, ...parsed, upgrades: { ...saveData.upgrades, ...parsed.upgrades } };
+                }
+            } catch (e) {
+                console.error("Save load error", e);
+            }
+        }
+
+        function writeSaveData() {
+            try {
+                localStorage.setItem('patricks_snack_attack_save_v2', JSON.stringify(saveData));
+            } catch (e) {
+                console.error("Save write error", e);
+            }
+        }
+        loadSaveData();
+
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.isMuted = false;
+                this.isPlayingMusic = false;
+                this.musicInterval = null;
+                this.ragaStep = 0;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playFartSFX(pitch = 100, duration = 0.25, volume = 0.4) {
+                if (this.isMuted) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                
+                // Low pitch base oscillator with pitch drop
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(pitch, now);
+                osc.frequency.exponentialRampToValueAtTime(Math.max(20, pitch * 0.3), now + duration);
+
+                // Distort/Filter to sound extra squishy
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(400, now);
+                filter.frequency.linearRampToValueAtTime(150, now + duration);
+
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration);
+            }
+
+            playSFX(type) {
+                if (this.isMuted) return;
+                this.init();
+
+                if (type === 'snack') {
+                    this.playFartSFX(180, 0.12, 0.2);
+                } else if (type === 'tick') {
+                    this.playFartSFX(250, 0.05, 0.1);
+                } else if (type === 'gold_drop') {
+                    this.playFartSFX(300, 0.5, 0.5);
+                } else if (type === 'jump') {
+                    this.playFartSFX(120, 0.15, 0.3);
+                } else if (type === 'soda') {
+                    this.playFartSFX(220, 0.2, 0.35);
+                } else if (type === 'heart') {
+                    this.playFartSFX(350, 0.25, 0.4);
+                } else if (type === 'fire') {
+                    this.playFartSFX(70, 0.3, 0.5);
+                } else if (type === 'slam') {
+                    this.playFartSFX(50, 0.35, 0.6);
+                } else if (type === 'hurt') {
+                    this.playFartSFX(90, 0.2, 0.4);
+                }
+            }
+
+            startMusic() {
+                if (this.isPlayingMusic || this.isMuted) return;
+                this.init();
+                this.isPlayingMusic = true;
+
+                this.musicInterval = setInterval(() => {
+                    if (this.isMuted || !this.isPlayingMusic) return;
+                    this.tickFartRhythm();
+                }, 300);
+            }
+
+            tickFartRhythm() {
+                this.ragaStep = (this.ragaStep + 1) % 8;
+                
+                // Rhythm fart sound beats
+                if (this.ragaStep % 2 === 0) {
+                    this.playFartSFX(80 + (this.ragaStep * 10), 0.15, 0.15);
+                } else if (Math.random() > 0.5) {
+                    this.playFartSFX(140 + Math.random() * 60, 0.1, 0.1);
+                }
+            }
+
+            stopMusic() {
+                this.isPlayingMusic = false;
+                if (this.musicInterval) clearInterval(this.musicInterval);
+            }
+
+            toggleAudio() {
+                this.isMuted = !this.isMuted;
+                if (this.isMuted) {
+                    this.stopMusic();
+                } else {
+                    this.startMusic();
+                }
+                return !this.isMuted;
+            }
+        }
+
+        const audio = new SoundEngine();
+
+        // Platforms
+        const PLATFORMS = [
+            { x: 0, y: 550, w: 1000, h: 50, color: '#1e293b' },
+            { x: 120, y: 420, w: 220, h: 20, color: '#334155' },
+            { x: 660, y: 420, w: 220, h: 20, color: '#334155' },
+            { x: 390, y: 300, w: 220, h: 20, color: '#475569' },
+            { x: 150, y: 180, w: 200, h: 20, color: '#334155' },
+            { x: 650, y: 180, w: 200, h: 20, color: '#334155' }
+        ];
+
+        class Player {
+            constructor() {
+                this.resetToDefaults();
+            }
+
+            resetToDefaults() {
+                this.x = 100;
+                this.y = 480;
+                this.w = 54;
+                this.h = 64;
+                this.vx = 0;
+                this.vy = 0;
+                
+                const shoeBonus = saveData.upgrades.shoes * 1.2;
+                this.speed = 5.5 + shoeBonus;
+                this.jumpForce = -13.5 - (saveData.upgrades.shoes * 0.8);
+                this.maxHp = 3 + saveData.upgrades.thickSkin;
+                this.hp = this.maxHp;
+
+                this.sodaCharges = 0;
+
+                this.maxChiliCharges = 1;
+                this.chiliCharges = this.maxChiliCharges;
+
+                this.isGrounded = false;
+                this.isSlamming = false;
+                this.facing = 1;
+                this.invulnerableTimer = 0;
+                this.bellySquash = 1.0;
+                this.bellyWobbleTime = 0;
+            }
+
+            update(keys) {
+                this.bellyWobbleTime += 0.15;
+
+                if (keys['KeyA'] || keys['ArrowLeft']) {
+                    this.vx = -this.speed;
+                    this.facing = -1;
+                } else if (keys['KeyD'] || keys['ArrowRight']) {
+                    this.vx = this.speed;
+                    this.facing = 1;
+                } else {
+                    this.vx *= 0.75;
+                }
+
+                this.vy += 0.65;
+
+                if ((keys['KeyS'] || keys['ArrowDown']) && !this.isGrounded && !this.isSlamming) {
+                    this.isSlamming = true;
+                    this.vy = 18;
+                    audio.playSFX('slam');
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 10) this.x = 10;
+                if (this.x + this.w > GAME_WIDTH - 10) this.x = GAME_WIDTH - 10 - this.w;
+
+                this.isGrounded = false;
+                for (let plat of PLATFORMS) {
+                    if (this.x + this.w * 0.8 > plat.x &&
+                        this.x + this.w * 0.2 < plat.x + plat.w &&
+                        this.y + this.h >= plat.y &&
+                        this.y + this.h <= plat.y + plat.h + this.vy) {
+                        
+                        if (this.vy > 0) {
+                            this.y = plat.y - this.h;
+                            this.vy = 0;
+                            this.isGrounded = true;
+
+                            if (this.isSlamming) {
+                                this.isSlamming = false;
+                                this.bellySquash = 0.6;
+                                createParticles(this.x + this.w/2, this.y + this.h, '#84cc16', 12);
+                            }
+                        }
+                    }
+                }
+
+                this.bellySquash += (1.0 - this.bellySquash) * 0.15;
+                if (this.invulnerableTimer > 0) this.invulnerableTimer--;
+            }
+
+            jump() {
+                if (this.isGrounded) {
+                    this.vy = this.jumpForce;
+                    this.bellySquash = 1.3;
+                    audio.playSFX('jump');
+                    createParticles(this.x + this.w/2, this.y + this.h, '#84cc16', 6);
+                } else if (this.sodaCharges > 0) {
+                    this.sodaCharges--;
+                    this.vy = this.jumpForce * 0.9;
+                    this.bellySquash = 1.2;
+                    audio.playSFX('soda');
+                    createParticles(this.x + this.w/2, this.y + this.h, '#84cc16', 10);
+                    updateHUD();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.w/2, this.y + this.h/2);
+                if (this.facing === -1) ctx.scale(-1, 1);
+
+                if (this.invulnerableTimer % 6 > 3) {
+                    ctx.restore();
+                    return;
+                }
+
+                const currentSkin = SKINS_DATABASE[saveData.equippedSkin] || SKINS_DATABASE['default'];
+                const width = this.w;
+                const height = this.h * this.bellySquash;
+
+                // Skin Custom Aura Effect
+                if (currentSkin.aura) {
+                    ctx.shadowColor = currentSkin.aura;
+                    ctx.shadowBlur = 15;
+                }
+
+                // Body Base
+                ctx.fillStyle = currentSkin.color;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, width/2, height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = currentSkin.stroke;
+                ctx.stroke();
+
+                // Reset Shadow
+                ctx.shadowBlur = 0;
+
+                // Belly Accent
+                const wobble = Math.sin(this.bellyWobbleTime) * 3;
+                ctx.fillStyle = currentSkin.bellyColor;
+                ctx.beginPath();
+                ctx.ellipse(4 + wobble/2, 8, width/3, height/3.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eyes
+                if (currentSkin.hat === 'anime_hair') {
+                    // Big sparkly anime eyes
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(8, -height/4, 7, 9, 0, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ec4899';
+                    ctx.beginPath();
+                    ctx.ellipse(9, -height/4, 4, 6, 0, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(8, -height/4 - 2, 2, 0, Math.PI*2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(8, -height/4, 6, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#0f172a';
+                    ctx.beginPath();
+                    ctx.arc(10, -height/4, 2.5, 0, Math.PI*2);
+                    ctx.fill();
+                }
+
+                // Skin Specific Hats / Accessories Visuals
+                if (currentSkin.hat === 'headband') {
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(-width/2, -height/2.2, width, 8);
+                } else if (currentSkin.hat === 'gym_belt') {
+                    // Headband & Gym Weightlifting Belt
+                    ctx.fillStyle = '#f97316';
+                    ctx.fillRect(-width/2, -height/2.2, width, 8);
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(-width/2.2, 12, width * 0.9, 10);
+                    ctx.fillStyle = '#eab308';
+                    ctx.fillRect(-4, 11, 8, 12);
+                } else if (currentSkin.hat === 'chef_hat') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(4, -height/2 - 10, 14, 0, Math.PI*2);
+                    ctx.fill();
+                } else if (currentSkin.hat === 'top_hat') {
+                    ctx.fillStyle = '#1e3a8a';
+                    ctx.fillRect(-width/2 + 4, -height/2 - 4, width - 8, 4);
+                    ctx.fillRect(-width/3 + 2, -height/2 - 18, width/1.6, 14);
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(-width/3 + 2, -height/2 - 8, width/1.6, 4);
+                } else if (currentSkin.hat === 'ninja_mask') {
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(-width/2 + 2, -height/3, width - 4, 12);
+                } else if (currentSkin.hat === 'visor') {
+                    ctx.fillStyle = '#ec4899';
+                    ctx.fillRect(0, -height/3, 20, 8);
+                } else if (currentSkin.hat === 'turban') {
+                    ctx.fillStyle = '#eab308';
+                    ctx.beginPath();
+                    ctx.arc(0, -height/2 - 4, 16, 0, Math.PI*2);
+                    ctx.fill();
+                } else if (currentSkin.hat === 'halo') {
+                    ctx.strokeStyle = '#fef08a';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -height/2 - 12, 14, 5, 0, 0, Math.PI*2);
+                    ctx.stroke();
+                } else if (currentSkin.hat === 'cosplay_mask') {
+                    ctx.fillStyle = '#f472b6';
+                    ctx.beginPath();
+                    ctx.arc(6, -height/4, 10, 0, Math.PI*2);
+                    ctx.fill();
+                } else if (currentSkin.hat === 'twintails') {
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.beginPath();
+                    ctx.arc(-width/2, -height/3, 8, 0, Math.PI*2);
+                    ctx.arc(width/2, -height/3, 8, 0, Math.PI*2);
+                    ctx.fill();
+                } else if (currentSkin.hat === 'anime_hair') {
+                    ctx.fillStyle = '#c084fc';
+                    ctx.beginPath();
+                    ctx.moveTo(-width/2, -height/4);
+                    ctx.lineTo(0, -height/1.8);
+                    ctx.lineTo(width/2, -height/4);
+                    ctx.fill();
+                } else if (currentSkin.hat === 'fox_ears') {
+                    ctx.fillStyle = '#ea580c';
+                    ctx.beginPath();
+                    ctx.moveTo(-16, -height/2 + 2);
+                    ctx.lineTo(-8, -height/2 - 14);
+                    ctx.lineTo(0, -height/2 + 2);
+                    ctx.moveTo(0, -height/2 + 2);
+                    ctx.lineTo(8, -height/2 - 14);
+                    ctx.lineTo(16, -height/2 + 2);
+                    ctx.fill();
+                }
+
+                // Mouth
+                ctx.beginPath();
+                ctx.strokeStyle = '#9d174d';
+                ctx.lineWidth = 2.5;
+                if (this.isSlamming) {
+                    ctx.arc(8, 0, 6, 0, Math.PI);
+                } else if (currentSkin.hat === 'twintails') {
+                    ctx.arc(8, 2, 4, Math.PI, 0); // Tsundere pout
+                } else {
+                    ctx.arc(8, -2, 5, 0.2, Math.PI - 0.2);
+                }
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        class Snack {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.w = 32;
+                this.h = 32;
+                this.type = type;
+                this.floatOffset = Math.random() * Math.PI * 2;
+                
+                if (type === 'burger') { this.emoji = '🍔'; this.score = 100; this.cal = 15; }
+                else if (type === 'pizza') { this.emoji = '🍕'; this.score = 150; this.cal = 20; }
+                else if (type === 'donut') { this.emoji = '🍩'; this.score = 75; this.cal = 10; }
+                else { this.emoji = '🍟'; this.score = 120; this.cal = 18; }
+            }
+
+            update(player) {
+                this.floatOffset += 0.05;
+
+                if (saveData.upgrades.magnet > 0) {
+                    const magnetDist = 80 + (saveData.upgrades.magnet * 50);
+                    const dx = (player.x + player.w/2) - (this.x + this.w/2);
+                    const dy = (player.y + player.h/2) - (this.y + this.h/2);
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (dist < magnetDist) {
+                        this.x += (dx / dist) * 4.5;
+                        this.y += (dy / dist) * 4.5;
+                    }
+                }
+            }
+
+            draw() {
+                const hoverY = this.y + Math.sin(this.floatOffset) * 5;
+                ctx.font = '28px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, this.x + this.w/2, hoverY + this.h/2);
+            }
+        }
+
+        class SkyHazard {
+            constructor(x) {
+                this.x = x;
+                this.y = -40;
+                this.w = 36;
+                this.h = 36;
+                this.vy = 3 + Math.random() * 3;
+                this.rotation = 0;
+                
+                const types = [
+                    { emoji: '🥦', dmg: 1, type: 'hazard' },
+                    { emoji: '🥒', dmg: 1, type: 'hazard' },
+                    { emoji: '🏋️', dmg: 2, type: 'hazard' },
+                    { emoji: '🔔', dmg: 1, type: 'hazard' },
+                    { emoji: '🥤', dmg: 0, type: 'soda' },
+                    { emoji: '❤️', dmg: 0, type: 'heart' }
+                ];
+                const choice = types[Math.floor(Math.random() * types.length)];
+                this.emoji = choice.emoji;
+                this.dmg = choice.dmg;
+                this.type = choice.type;
+            }
+
+            update() {
+                this.y += this.vy;
+                this.rotation += 0.05;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.w/2, this.y + this.h/2);
+                ctx.rotate(this.rotation);
+                ctx.font = '30px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        class ChiliFireball {
+            constructor(x, y, dir) {
+                this.x = x;
+                this.y = y;
+                this.vx = dir * 12;
+                this.radius = 16 + (saveData.upgrades.spicyBelch * 4);
+                this.damage = 25 + (saveData.upgrades.spicyBelch * 15);
+                this.life = 60;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.life--;
+                createParticles(this.x, this.y, '#84cc16', 2);
+            }
+
+            draw() {
+                ctx.font = `${this.radius * 2}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💨', this.x, this.y);
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.vx = (Math.random() - 0.5) * 6;
+                this.vy = (Math.random() - 0.5) * 6;
+                this.radius = 3 + Math.random() * 4;
+                this.life = 25 + Math.random() * 15;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.radius *= 0.92;
+                this.life--;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, Math.max(0.1, this.radius), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        let particles = [];
+        function createParticles(x, y, color, count = 8) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        class Boss {
+            constructor(wave) {
+                this.wave = wave;
+                this.maxHp = 250 + wave * 100;
+                this.hp = this.maxHp;
+                this.w = 110;
+                this.h = 110;
+                this.x = GAME_WIDTH / 2 - this.w / 2;
+                this.y = 80;
+                this.vx = 4;
+                this.isEnraged = false;
+                this.telegraphTimer = 0;
+                this.weakSpotTimer = 0;
+
+                if (wave === 3) {
+                    this.name = "Dr. Treadmill 🏃‍♂️";
+                    this.color = '#ef4444';
+                } else if (wave === 6) {
+                    this.name = "Chef Saladin 🥗";
+                    this.color = '#10b981';
+                } else {
+                    this.name = "The Calorie Counter 🔢";
+                    this.color = '#8b5cf6';
+                }
+            }
+
+            update(player) {
+                if (this.hp <= this.maxHp / 2) {
+                    this.isEnraged = true;
+                }
+
+                const currentSpeed = this.isEnraged ? Math.abs(this.vx) * 1.5 : Math.abs(this.vx);
+                this.x += (this.vx > 0 ? 1 : -1) * currentSpeed;
+
+                if (this.x < 50 || this.x + this.w > GAME_WIDTH - 50) {
+                    this.vx *= -1;
+                }
+
+                this.weakSpotTimer = (this.weakSpotTimer + 1) % 200;
+
+                this.telegraphTimer++;
+                if (this.telegraphTimer > (this.isEnraged ? 70 : 120)) {
+                    this.telegraphTimer = 0;
+                    skyHazards.push(new SkyHazard(player.x));
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.w/2, this.y + this.h/2);
+
+                if (this.weakSpotTimer > 130) {
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.w/1.8, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.isEnraged ? '#dc2626' : this.color;
+                ctx.beginPath();
+                ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 24);
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.isEnraged ? "⚡ ENRAGED ⚡" : this.name, 0, -10);
+
+                ctx.font = '36px sans-serif';
+                ctx.fillText(this.isEnraged ? '😡' : '🤖', 0, 25);
+
+                ctx.restore();
+            }
+        }
+
+        let isUnboxing = false;
+        let lastTickIndex = -1;
+
+        function getRandomSkinByProbability() {
+            const caseData = CASE_TIERS[selectedCaseTier];
+            const roll = Math.random() * 100;
+            
+            const gChance = caseData.odds.gold;
+            const lChance = gChance + caseData.odds.legendary;
+            const mChance = lChance + caseData.odds.mythic;
+            const rChance = mChance + caseData.odds.rare;
+
+            if (roll < gChance) return SKINS_DATABASE['cosmic_god'];
+            if (roll < lChance) return SKINS_DATABASE['gym_bro'];
+            if (roll < mChance) {
+                const mythics = ['cyberpunk', 'maharaja', 'anime', 'sweetie_fox'];
+                return SKINS_DATABASE[mythics[Math.floor(Math.random() * mythics.length)]];
+            }
+            if (roll < rChance) {
+                const rares = ['ninja', 'vampire', 'patriot', 'tsundere'];
+                return SKINS_DATABASE[rares[Math.floor(Math.random() * rares.length)]];
+            }
+            const commons = ['default', 'chef', 'patrick_cosplayer'];
+            return SKINS_DATABASE[commons[Math.floor(Math.random() * commons.length)]];
+        }
+
+        function selectCaseTier(tierKey) {
+            if (isUnboxing) return;
+            selectedCaseTier = tierKey;
+            
+            // Update Case Buttons Styles
+            ['standard', 'jumbo', 'patriot'].forEach(t => {
+                const btn = document.getElementById(`case-tier-${t}`);
+                if (t === tierKey) {
+                    btn.className = 'case-tier-btn p-3 rounded-2xl glass-panel border-2 border-amber-500 bg-amber-500/10 text-left transition hover:bg-amber-500/20';
+                } else {
+                    btn.className = 'case-tier-btn p-3 rounded-2xl glass-panel border border-slate-800 text-left transition hover:bg-slate-800/60';
+                }
+            });
+
+            const caseData = CASE_TIERS[tierKey];
+            document.getElementById('case-cost-text').textContent = `🪙 ${caseData.cost}`;
+            document.getElementById('case-odds-display').innerHTML = `
+                <div class="px-2 py-1.5 rounded-xl bg-blue-950/60 text-blue-300 border border-blue-500/30 font-semibold">Common (${caseData.odds.common}%)</div>
+                <div class="px-2 py-1.5 rounded-xl bg-purple-950/60 text-purple-300 border border-purple-500/30 font-semibold">Rare (${caseData.odds.rare}%)</div>
+                <div class="px-2 py-1.5 rounded-xl bg-pink-950/60 text-pink-300 border border-pink-500/30 font-semibold">Mythic (${caseData.odds.mythic}%)</div>
+                <div class="px-2 py-1.5 rounded-xl bg-orange-950/60 text-orange-300 border border-orange-500/30 font-semibold">Legendary (${caseData.odds.legendary}%)</div>
+                <div class="px-2 py-1.5 rounded-xl bg-yellow-950/60 text-yellow-300 border border-yellow-500/40 font-bold">★ GOLD (${caseData.odds.gold}%)</div>
+            `;
+        }
+
+        function triggerCS2CaseUnbox() {
+            const cost = CASE_TIERS[selectedCaseTier].cost;
+            if (isUnboxing || saveData.calories < cost) return;
+
+            // Deduct cost
+            saveData.calories -= cost;
+            writeSaveData();
+            updateHUD();
+            document.getElementById('case-calorie-balance').textContent = saveData.calories;
+
+            isUnboxing = true;
+            document.getElementById('btn-open-case').disabled = true;
+            document.getElementById('unbox-result-card').classList.add('hidden');
+
+            const track = document.getElementById('case-reel-track');
+            track.innerHTML = '';
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+
+            // STEP 1: Decide the winning skin BEFORE the spin
+            const winningSkin = getRandomSkinByProbability();
+            const WINNING_INDEX = 42;
+
+            // STEP 2: Generate filler items for the reel
+            const reelSkins = [];
+            for (let i = 0; i < 55; i++) {
+                if (i === WINNING_INDEX) {
+                    reelSkins.push(winningSkin);
+                } else {
+                    reelSkins.push(getRandomSkinByProbability());
+                }
+            }
+
+            // Render cards to track
+            reelSkins.forEach((skin) => {
+                const card = document.createElement('div');
+                card.className = `case-item-card ${skin.rarityClass}`;
+                card.innerHTML = `
+                    <div class="text-4xl mb-1 filter drop-shadow">${skin.emoji}</div>
+                    <div class="font-game text-xs text-center text-white px-1 truncate w-full">${skin.name}</div>
+                `;
+                track.appendChild(card);
+            });
+
+            // STEP 3: Dynamically compute position so WINNING_INDEX centers on the red pointer line
+            const containerWidth = document.getElementById('case-reel-container').offsetWidth || 600;
+            const cardWidth = 110;
+            const cardMargin = 10;
+            const cardStep = cardWidth + cardMargin; // 120px total step per card
+
+            // Center of card 42 relative to the track start
+            const winningCardCenterPos = (WINNING_INDEX * cardStep) + (cardWidth / 2);
+            // Center of the outer container viewport
+            const containerCenterPos = containerWidth / 2;
+
+            // Calculate precise scroll target with a slight random offset inside the card area
+            const randomCardOffset = (Math.random() - 0.5) * 40; // slight random variation inside card boundaries
+            const targetOffset = winningCardCenterPos - containerCenterPos + randomCardOffset;
+
+            // STEP 4: Trigger the CSS smooth deceleration spin animation
+            setTimeout(() => {
+                track.style.transition = 'transform 6.5s cubic-bezier(0.1, 0.9, 0.15, 1)';
+                track.style.transform = `translateX(-${targetOffset}px)`;
+            }, 50);
+
+            // Ticking Audio Tracker during the spin
+            lastTickIndex = -1;
+            const startTime = Date.now();
+            const tickCheck = setInterval(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                if (elapsed >= 6.5) {
+                    clearInterval(tickCheck);
+                    completeUnboxing(winningSkin);
+                } else {
+                    const currentX = (elapsed / 6.5) * targetOffset;
+                    const cardIndex = Math.floor(currentX / cardStep);
+                    if (cardIndex !== lastTickIndex) {
+                        lastTickIndex = cardIndex;
+                        audio.playSFX('tick');
+                    }
+                }
+            }, 50);
+        }
+
+        function completeUnboxing(wonSkin) {
+            isUnboxing = false;
+            document.getElementById('btn-open-case').disabled = false;
+
+            if (wonSkin.rarity === 'gold' || wonSkin.rarity === 'legendary') {
+                audio.playSFX('gold_drop');
+            } else {
+                audio.playSFX('snack');
+            }
+
+            // Create inventory item instance
+            const instanceId = 'skin_' + Date.now();
+            const val = Math.floor(wonSkin.valueRange[0] + Math.random() * (wonSkin.valueRange[1] - wonSkin.valueRange[0]));
+            
+            const newSkinInstance = {
+                instanceId: instanceId,
+                skinId: wonSkin.id,
+                snackTrak: 0,
+                quickSellVal: val
+            };
+
+            // Display Result Panel
+            const resCard = document.getElementById('unbox-result-card');
+            resCard.className = `my-2 p-5 rounded-2xl glass-panel border-2 text-center flex flex-col items-center justify-center animate-fade-in shadow-2xl ${wonSkin.rarityClass}`;
+            document.getElementById('unbox-result-icon').textContent = wonSkin.emoji;
+            document.getElementById('unbox-result-name').textContent = wonSkin.name;
+            document.getElementById('unbox-result-rarity').textContent = `${wonSkin.rarity.toUpperCase()} TIER DROP`;
+            
+            const btnKeep = document.getElementById('btn-result-keep');
+            const btnSell = document.getElementById('btn-result-sell');
+            btnSell.textContent = `QUICK SELL (🪙 ${val})`;
+
+            btnKeep.onclick = () => {
+                saveData.inventory.push(newSkinInstance);
+                writeSaveData();
+                resCard.classList.add('hidden');
+                updateHUD();
+            };
+
+            btnSell.onclick = () => {
+                saveData.calories += val;
+                writeSaveData();
+                resCard.classList.add('hidden');
+                updateHUD();
+                document.getElementById('case-calorie-balance').textContent = saveData.calories;
+            };
+
+            resCard.classList.remove('hidden');
+        }
+
+        function renderInventory() {
+            document.getElementById('inv-calorie-balance').textContent = saveData.calories;
+            const grid = document.getElementById('inventory-grid');
+            grid.innerHTML = '';
+
+            saveData.inventory.forEach(item => {
+                const skin = SKINS_DATABASE[item.skinId] || SKINS_DATABASE['default'];
+                const isEquipped = saveData.equippedSkin === item.skinId;
+
+                const card = document.createElement('div');
+                card.className = `glass-panel p-3.5 rounded-2xl flex flex-col items-center border-2 text-center relative ${skin.rarityClass}`;
+                card.innerHTML = `
+                    ${isEquipped ? '<span class="absolute top-2.5 right-2.5 bg-emerald-400 text-slate-950 font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md shadow-sm">EQUIPPED</span>' : ''}
+                    <div class="text-4xl my-2 filter drop-shadow">${skin.emoji}</div>
+                    <div class="font-game text-sm text-white truncate w-full mb-0.5">${skin.name}</div>
+                    <div class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-3">${skin.rarity}</div>
+                    <div class="flex gap-2 w-full mt-auto">
+                        <button class="btn-equip flex-1 py-2 text-xs font-game rounded-xl transition ${isEquipped ? 'bg-slate-800 text-slate-500 cursor-default border border-slate-700' : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white btn-bounce shadow-md shadow-purple-500/20'}">
+                            ${isEquipped ? 'EQUIPPED' : 'EQUIP'}
+                        </button>
+                        <button class="btn-sell p-2 text-xs font-game bg-red-950/60 hover:bg-red-600 text-red-200 border border-red-500/30 rounded-xl btn-bounce transition" title="Sell for Calories">
+                            🪙 ${item.quickSellVal || 200}
+                        </button>
+                    </div>
+                `;
+
+                const btnEquip = card.querySelector('.btn-equip');
+                if (!isEquipped) {
+                    btnEquip.onclick = () => {
+                        saveData.equippedSkin = item.skinId;
+                        writeSaveData();
+                        renderInventory();
+                        updateHUD();
+                    };
+                }
+
+                const btnSell = card.querySelector('.btn-sell');
+                btnSell.onclick = () => {
+                    const sellVal = item.quickSellVal || 200;
+                    saveData.calories += sellVal;
+                    saveData.inventory = saveData.inventory.filter(i => i.instanceId !== item.instanceId);
+                    
+                    if (saveData.equippedSkin === item.skinId && !saveData.inventory.some(i => i.skinId === item.skinId)) {
+                        saveData.equippedSkin = 'default';
+                    }
+
+                    writeSaveData();
+                    renderInventory();
+                    updateHUD();
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        let player = new Player();
+        let snacks = [];
+        let skyHazards = [];
+        let fireballs = [];
+        let currentBoss = null;
+
+        let gameState = 'MENU';
+        let currentWave = 1;
+        let score = 0;
+        let waveStartScore = 0;
+        let earnedCaloriesThisRun = 0;
+
+        const keys = {};
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+
+            if (gameState === 'PLAYING') {
+                if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') {
+                    player.jump();
+                }
+                if (e.code === 'KeyF' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                    shootChili();
+                }
+                if (e.code === 'KeyR') {
+                    resetWaveLevel();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        function shootChili() {
+            if (player.chiliCharges > 0) {
+                player.chiliCharges--;
+                fireballs.push(new ChiliFireball(player.x + player.w/2, player.y + player.h/2, player.facing));
+                audio.playSFX('fire');
+                updateHUD();
+            }
+        }
+
+        function resetWaveLevel() {
+            score = waveStartScore;
+
+            snacks = [];
+            skyHazards = [];
+            fireballs = [];
+            particles = [];
+
+            player.x = 100;
+            player.y = 480;
+            player.vx = 0;
+            player.vy = 0;
+            player.sodaCharges = 0;
+            player.chiliCharges = player.maxChiliCharges;
+
+            if (currentBoss === null) {
+                spawnWaveSnacks();
+            }
+
+            updateHUD();
+        }
+
+        function spawnWaveSnacks() {
+            snacks = [];
+            const snackTypes = ['burger', 'pizza', 'donut', 'fries'];
+            const count = 6 + currentWave * 2;
+
+            for (let i = 0; i < count; i++) {
+                const plat = PLATFORMS[Math.floor(Math.random() * PLATFORMS.length)];
+                const x = plat.x + 20 + Math.random() * (plat.w - 60);
+                const y = plat.y - 45;
+
+                let tooClose = snacks.some(s => Math.hypot(s.x - x, s.y - y) < 35);
+                if (!tooClose) {
+                    const type = snackTypes[Math.floor(Math.random() * snackTypes.length)];
+                    snacks.push(new Snack(x, y, type));
+                }
+            }
+        }
+
+        function startNextWave() {
+            currentWave++;
+            waveStartScore = score;
+            player.chiliCharges = player.maxChiliCharges;
+
+            if (currentWave % 3 === 0) {
+                currentBoss = new Boss(currentWave);
+                document.getElementById('boss-hud').classList.remove('hidden');
+                document.getElementById('boss-name').textContent = currentBoss.name;
+            } else {
+                currentBoss = null;
+                document.getElementById('boss-hud').classList.add('hidden');
+                spawnWaveSnacks();
+            }
+
+            updateHUD();
+        }
+
+        function initGame() {
+            player.resetToDefaults();
+            score = 0;
+            waveStartScore = 0;
+            currentWave = 1;
+            earnedCaloriesThisRun = 0;
+            currentBoss = null;
+
+            document.getElementById('boss-hud').classList.add('hidden');
+            resetWaveLevel();
+
+            gameState = 'PLAYING';
+            document.getElementById('menu-overlay').classList.add('hidden');
+            document.getElementById('gameover-overlay').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            if (window.innerWidth < 768) {
+                document.getElementById('mobile-controls').classList.remove('hidden');
+            }
+
+            audio.startMusic();
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-score').textContent = score;
+            document.getElementById('hud-wave').textContent = currentWave;
+            document.getElementById('hud-calories').textContent = saveData.calories;
+            document.getElementById('hud-soda-count').textContent = player.sodaCharges;
+            document.getElementById('hud-chili-count').textContent = player.chiliCharges;
+
+            // Equipped Skin HUD Badge
+            const equippedSkin = SKINS_DATABASE[saveData.equippedSkin] || SKINS_DATABASE['default'];
+            document.getElementById('hud-skin-icon').textContent = equippedSkin.emoji;
+            document.getElementById('hud-skin-name').textContent = equippedSkin.name;
+
+            // Render hearts
+            const heartsContainer = document.getElementById('hud-hearts');
+            heartsContainer.innerHTML = '';
+            for (let i = 0; i < player.maxHp; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'text-lg sm:text-xl transition-transform';
+                heart.textContent = i < player.hp ? '❤️' : '🖤';
+                heartsContainer.appendChild(heart);
+            }
+
+            if (currentBoss) {
+                const pct = Math.max(0, (currentBoss.hp / currentBoss.maxHp) * 100);
+                document.getElementById('boss-hp-fill').style.width = `${pct}%`;
+                document.getElementById('boss-hp-text').textContent = `${Math.ceil(currentBoss.hp)} / ${currentBoss.maxHp}`;
+            }
+        }
+
+        const UPGRADE_DEFINITIONS = [
+            { id: 'thickSkin', name: 'Thick Skin (Max HP)', icon: '❤️', costs: [800, 2000, 4000, 7000, 15000], max: 5, desc: 'Increases Patrick\'s starting max hearts.' },
+            { id: 'spicyBelch', name: 'Chili Fart Damage', icon: '🌶️', baseCost: 200, max: 3, desc: 'Increases Chili Fart blast damage against bosses.' },
+            { id: 'magnet', name: 'Calorie Magnet', icon: '🧲', baseCost: 120, max: 3, desc: 'Attracts nearby snacks automatically towards Patrick.' },
+            { id: 'shoes', name: 'Running Shoes', icon: '👟', baseCost: 180, max: 3, desc: 'Increases Patrick\'s movement speed and leap height.' }
+        ];
+
+        function renderShop() {
+            document.getElementById('shop-calorie-balance').textContent = saveData.calories;
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = '';
+
+            UPGRADE_DEFINITIONS.forEach(upg => {
+                const currentLvl = saveData.upgrades[upg.id] || 0;
+                const cost = upg.costs ? upg.costs[currentLvl] : upg.baseCost * (currentLvl + 1);
+                const isMax = currentLvl >= upg.max;
+
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 rounded-2xl border border-slate-800 flex justify-between items-center';
+                card.innerHTML = `
+                    <div class="flex items-center gap-3.5">
+                        <div class="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/50 text-2xl">${upg.icon}</div>
+                        <div>
+                            <div class="font-game text-amber-300 text-base mb-0.5">${upg.name} <span class="text-xs text-slate-400 font-bold ml-1">(Lvl ${currentLvl}/${upg.max})</span></div>
+                            <div class="text-xs text-slate-400 max-w-[180px] sm:max-w-xs leading-relaxed">${upg.desc}</div>
+                        </div>
+                    </div>
+                    <button class="btn-buy font-game px-4 py-2.5 rounded-xl text-sm btn-bounce transition ${isMax ? 'bg-slate-800/80 text-slate-500 cursor-not-allowed border border-slate-700' : (saveData.calories >= cost ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 shadow-md shadow-amber-500/20' : 'bg-slate-800/80 text-slate-500 cursor-not-allowed border border-slate-700')}" ${isMax || saveData.calories < cost ? 'disabled' : ''}>
+                        ${isMax ? 'MAXED' : `🪙 ${cost}`}
+                    </button>
+                `;
+
+                const btn = card.querySelector('.btn-buy');
+                if (!isMax && saveData.calories >= cost) {
+                    btn.onclick = () => {
+                        saveData.calories -= cost;
+                        saveData.upgrades[upg.id] = currentLvl + 1;
+                        writeSaveData();
+                        renderShop();
+                        updateHUD();
+                    };
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            for (let plat of PLATFORMS) {
+                ctx.fillStyle = plat.color;
+                ctx.beginPath();
+                ctx.roundRect(plat.x, plat.y, plat.w, plat.h, 8);
+                ctx.fill();
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            if (gameState === 'PLAYING') {
+                player.update(keys);
+                player.draw();
+
+                if (currentBoss === null && Math.random() < 0.02 + currentWave * 0.005) {
+                    skyHazards.push(new SkyHazard(Math.random() * (GAME_WIDTH - 60) + 30));
+                }
+
+                for (let i = snacks.length - 1; i >= 0; i--) {
+                    const snack = snacks[i];
+                    snack.update(player);
+                    snack.draw();
+
+                    if (Math.hypot((player.x + player.w/2) - (snack.x + snack.w/2), (player.y + player.h/2) - (snack.y + snack.h/2)) < 36) {
+                        score += snack.score;
+                        saveData.calories += snack.cal;
+                        earnedCaloriesThisRun += snack.cal;
+                        writeSaveData();
+
+                        audio.playSFX('snack');
+                        createParticles(snack.x + snack.w/2, snack.y + snack.h/2, '#f59e0b', 10);
+                        snacks.splice(i, 1);
+                        updateHUD();
+
+                        if (snacks.length === 0 && currentBoss === null) {
+                            startNextWave();
+                        }
+                    }
+                }
+
+                for (let i = skyHazards.length - 1; i >= 0; i--) {
+                    const haz = skyHazards[i];
+                    haz.update();
+                    haz.draw();
+
+                    if (Math.hypot((player.x + player.w/2) - (haz.x + haz.w/2), (player.y + player.h/2) - (haz.y + haz.h/2)) < 32) {
+                        if (haz.type === 'soda') {
+                            player.sodaCharges++;
+                            audio.playSFX('soda');
+                            createParticles(haz.x + haz.w/2, haz.y + haz.h/2, '#38bdf8', 12);
+                            skyHazards.splice(i, 1);
+                            updateHUD();
+                        } else if (haz.type === 'heart') {
+                            if (player.hp < player.maxHp) {
+                                player.hp++;
+                            }
+                            audio.playSFX('heart');
+                            createParticles(haz.x + haz.w/2, haz.y + haz.h/2, '#ef4444', 15);
+                            skyHazards.splice(i, 1);
+                            updateHUD();
+                        } else if (player.invulnerableTimer === 0) {
+                            player.hp -= haz.dmg;
+                            player.invulnerableTimer = 45;
+                            audio.playSFX('hurt');
+                            createParticles(player.x + player.w/2, player.y + player.h/2, '#ef4444', 12);
+                            skyHazards.splice(i, 1);
+                            updateHUD();
+
+                            if (player.hp <= 0) {
+                                triggerGameOver();
+                            }
+                        }
+                    } else if (haz.y > GAME_HEIGHT) {
+                        skyHazards.splice(i, 1);
+                    }
+                }
+
+                for (let i = fireballs.length - 1; i >= 0; i--) {
+                    const fb = fireballs[i];
+                    fb.update();
+                    fb.draw();
+
+                    if (currentBoss && Math.hypot(fb.x - (currentBoss.x + currentBoss.w/2), fb.y - (currentBoss.y + currentBoss.h/2)) < currentBoss.w/2) {
+                        currentBoss.hp -= fb.damage;
+                        audio.playSFX('slam');
+                        createParticles(fb.x, fb.y, '#84cc16', 15);
+                        fireballs.splice(i, 1);
+                        updateHUD();
+
+                        if (currentBoss.hp <= 0) {
+                            score += 1000;
+                            saveData.calories += 100;
+                            earnedCaloriesThisRun += 100;
+                            writeSaveData();
+                            startNextWave();
+                        }
+                    } else if (fb.life <= 0 || fb.x < 0 || fb.x > GAME_WIDTH) {
+                        fireballs.splice(i, 1);
+                    }
+                }
+
+                if (currentBoss) {
+                    currentBoss.update(player);
+                    currentBoss.draw();
+
+                    if (player.isSlamming && Math.hypot((player.x + player.w/2) - (currentBoss.x + currentBoss.w/2), (player.y + player.h) - currentBoss.y) < 60) {
+                        const isWeak = currentBoss.weakSpotTimer > 130;
+                        const dmg = isWeak ? 80 : 40;
+                        currentBoss.hp -= dmg;
+                        player.vy = -12;
+                        player.isSlamming = false;
+                        
+                        audio.playSFX('slam');
+                        createParticles(player.x + player.w/2, player.y + player.h, isWeak ? '#f59e0b' : '#ef4444', 20);
+                        updateHUD();
+
+                        if (currentBoss.hp <= 0) {
+                            score += currentBoss.wave * 500;
+                            saveData.calories += 150;
+                            earnedCaloriesThisRun += 150;
+                            writeSaveData();
+                            startNextWave();
+                        }
+                    }
+                }
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw();
+                    if (particles[i].life <= 0) particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function triggerGameOver() {
+            gameState = 'GAMEOVER';
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('mobile-controls').classList.add('hidden');
+            document.getElementById('gameover-overlay').classList.remove('hidden');
+
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-wave').textContent = currentWave;
+            document.getElementById('final-calories').textContent = `+${earnedCaloriesThisRun}`;
+        }
+
+        // DOM Button Listeners
+        document.getElementById('btn-start').onclick = () => initGame();
+        document.getElementById('btn-restart').onclick = () => initGame();
+        document.getElementById('btn-reset').onclick = () => resetWaveLevel();
+
+        document.getElementById('btn-cases-open').onclick = () => {
+            document.getElementById('case-calorie-balance').textContent = saveData.calories;
+            document.getElementById('case-overlay').classList.remove('hidden');
+        };
+        document.getElementById('btn-case-close').onclick = () => {
+            document.getElementById('case-overlay').classList.add('hidden');
+        };
+        document.getElementById('btn-open-case').onclick = () => triggerCS2CaseUnbox();
+
+        document.getElementById('case-tier-standard').onclick = () => selectCaseTier('standard');
+        document.getElementById('case-tier-jumbo').onclick = () => selectCaseTier('jumbo');
+        document.getElementById('case-tier-patriot').onclick = () => selectCaseTier('patriot');
+
+        document.getElementById('btn-inventory-open').onclick = () => {
+            renderInventory();
+            document.getElementById('inventory-overlay').classList.remove('hidden');
+        };
+        document.getElementById('btn-inventory-close').onclick = () => {
+            document.getElementById('inventory-overlay').classList.add('hidden');
+        };
+
+        document.getElementById('btn-shop-open').onclick = () => {
+            renderShop();
+            document.getElementById('shop-overlay').classList.remove('hidden');
+        };
+        document.getElementById('btn-shop-close').onclick = () => {
+            document.getElementById('shop-overlay').classList.add('hidden');
+        };
+
+        document.getElementById('btn-how-to').onclick = () => {
+            document.getElementById('how-overlay').classList.remove('hidden');
+        };
+        document.getElementById('btn-how-close').onclick = () => {
+            document.getElementById('how-overlay').classList.add('hidden');
+        };
+
+        document.getElementById('btn-main-menu').onclick = () => {
+            gameState = 'MENU';
+            document.getElementById('gameover-overlay').classList.add('hidden');
+            document.getElementById('menu-overlay').classList.remove('hidden');
+        };
+
+        // Audio Toggle
+        const btnAudio = document.getElementById('btn-audio-toggle');
+        const iconOn = document.getElementById('icon-sound-on');
+        const iconOff = document.getElementById('icon-sound-off');
+
+        btnAudio.onclick = () => {
+            const active = audio.toggleAudio();
+            if (active) {
+                iconOn.classList.remove('hidden');
+                iconOff.classList.add('hidden');
+            } else {
+                iconOn.classList.add('hidden');
+                iconOff.classList.remove('hidden');
+            }
+        };
+
+        // Mobile Controls
+        function bindTouch(id, keyName, actionCallback) {
+            const btn = document.getElementById(id);
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                keys[keyName] = true;
+                if (actionCallback) actionCallback();
+            });
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                keys[keyName] = false;
+            });
+        }
+
+        bindTouch('btn-touch-left', 'KeyA');
+        bindTouch('btn-touch-right', 'KeyD');
+        bindTouch('btn-touch-slam', 'KeyS');
+        bindTouch('btn-touch-jump', 'KeyW', () => player.jump());
+        bindTouch('btn-touch-fire', 'KeyF', () => shootChili());
+
+        window.onload = () => {
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
