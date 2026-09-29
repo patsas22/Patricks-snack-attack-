@@ -25,12 +25,15 @@
         .font-game { font-family: 'Fredoka One', cursive; }
 
         /* Keeps the game at a true 5:3 ratio so the canvas never gets stretched */
+        /* Game fills the whole window (as big as it can get without stretching) */
         .game-frame {
             position: relative;
-            width: min(calc(100vw - 16px), calc((100vh - 16px) * 5 / 3), 1400px);
-            width: min(calc(100vw - 16px), calc((100dvh - 16px) * 5 / 3), 1400px);
+            width: min(100vw, calc(100vh * 5 / 3));
+            width: min(100vw, calc(100dvh * 5 / 3));
             aspect-ratio: 5 / 3;
         }
+        .game-frame > .rounded-3xl, .game-frame > canvas { border-radius: 0; }
+        #gameCanvas { border: none; }
 
         .glass-panel {
             background: rgba(15, 23, 42, 0.82);
@@ -123,6 +126,28 @@
         .rarity-rare { border: 2px solid #a855f7; background: radial-gradient(circle at top, rgba(168,85,247,0.3) 0%, rgba(15,23,42,0.95) 80%); box-shadow: inset 0 0 12px rgba(168,85,247,0.25); }
         .rarity-mythic { border: 2px solid #ec4899; background: radial-gradient(circle at top, rgba(236,72,153,0.35) 0%, rgba(15,23,42,0.95) 80%); box-shadow: inset 0 0 15px rgba(236,72,153,0.3); }
         .rarity-legendary { border: 2px solid #f97316; background: radial-gradient(circle at top, rgba(249,115,22,0.4) 0%, rgba(15,23,42,0.95) 80%); box-shadow: inset 0 0 18px rgba(249,115,22,0.35), 0 0 10px rgba(249,115,22,0.2); }
+        @keyframes unhingedHue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+        @keyframes unhingedBorder { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+        .rarity-unhinged {
+            border: 2px solid transparent;
+            background:
+                radial-gradient(circle at top, rgba(236,72,153,0.35) 0%, rgba(15,23,42,0.97) 80%) padding-box,
+                linear-gradient(90deg, #ef4444, #f59e0b, #22c55e, #06b6d4, #8b5cf6, #ec4899, #ef4444) border-box;
+            background-size: 100% 100%, 200% 100%;
+            animation: unhingedBorder 2.5s linear infinite;
+            box-shadow: 0 0 22px rgba(236,72,153,0.45), inset 0 0 20px rgba(139,92,246,0.35);
+        }
+        .unhinged-pill {
+            background: linear-gradient(90deg, #7f1d1d, #78350f, #14532d, #164e63, #4c1d95, #831843);
+            background-size: 200% 100%;
+            animation: unhingedBorder 3s linear infinite;
+        }
+        .unhinged-text {
+            background: linear-gradient(90deg, #f87171, #fbbf24, #4ade80, #22d3ee, #a78bfa, #f472b6, #f87171);
+            background-size: 200% 100%;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            animation: unhingedBorder 2.5s linear infinite;
+        }
         .rarity-gold { border: 2px solid #eab308; background: radial-gradient(circle at top, rgba(234,179,8,0.45) 0%, rgba(15,23,42,0.95) 80%); box-shadow: inset 0 0 20px rgba(234,179,8,0.4), 0 0 15px rgba(234,179,8,0.3); }
 
         @keyframes headerGlow {
@@ -151,7 +176,6 @@
         }
         .shake-x { animation: shakeX 0.25s 2; }
 
-        #mobile-controls button { touch-action: none; }
     </style>
 </head>
 <body class="w-screen h-screen flex flex-col justify-center items-center relative overflow-hidden select-none bg-slate-950">
@@ -301,18 +325,6 @@
             </div>
         </div>
 
-        <!-- Touch controls -->
-        <div id="mobile-controls" class="absolute bottom-3 left-3 right-3 flex justify-between items-end pointer-events-none hidden z-10">
-            <div class="flex gap-2 pointer-events-auto">
-                <button id="btn-touch-left" class="w-14 h-14 glass-panel bg-slate-800/90 rounded-2xl flex items-center justify-center text-2xl active:bg-amber-500/50">◀</button>
-                <button id="btn-touch-right" class="w-14 h-14 glass-panel bg-slate-800/90 rounded-2xl flex items-center justify-center text-2xl active:bg-amber-500/50">▶</button>
-            </div>
-            <div class="flex gap-2 pointer-events-auto items-end">
-                <button id="btn-touch-slam" class="w-12 h-12 glass-panel bg-slate-800/90 rounded-2xl flex items-center justify-center text-xl active:bg-purple-500/50">⬇️</button>
-                <button id="btn-touch-fire" class="w-12 h-12 glass-panel bg-red-900/80 rounded-2xl flex items-center justify-center text-xl active:bg-red-500/50">🌶️</button>
-                <button id="btn-touch-jump" class="w-16 h-16 glass-panel bg-emerald-600/90 rounded-2xl flex items-center justify-center text-2xl active:bg-emerald-400/80">⬆️</button>
-            </div>
-        </div>
     </div>
 
     <!-- ================= FULL-SCREEN MODALS ================= -->
@@ -350,7 +362,7 @@
 
             <div class="glass-panel-accent p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-400 mb-4">
                 <div class="font-bold text-slate-300 mb-2 flex items-center gap-1.5"><span>🎯</span> Drop odds (hover for what's in each tier):</div>
-                <div id="case-odds-display" class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center"></div>
+                <div id="case-odds-display" class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center"></div>
             </div>
 
             <div class="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-slate-800/80">
@@ -485,8 +497,8 @@
                     <ul class="list-disc list-inside space-y-1.5 text-xs sm:text-sm">
                         <li>Eat every snack to clear the wave. Every 3rd wave is a boss.</li>
                         <li>Chili farts blow up falling veggies and weights for bonus points.</li>
-                        <li>Bosses mark where they're about to drop stuff. Move!</li>
-                        <li>Slam a boss while it glows gold for double damage.</li>
+                        <li>Every boss has its own trick, and the intro banner tells you how to beat it. Wave 18 is The Cracker.</li>
+                        <li>Slam a boss while it glows gold for double damage. You can stomp minions like Mario.</li>
                         <li>Open up to 5 cases at once. Everything you unbox goes straight to your inventory.</li>
                         <li>Got a pile of junk skins? Trade them up or sell the duplicates.</li>
                     </ul>
@@ -536,43 +548,64 @@
         //  SKINS / RARITIES / CASES
         // ============================================================
         const SKINS_DATABASE = {
-            'default': { id: 'default', name: 'Default Patrick', emoji: '⭐', rarity: 'common', rarityClass: 'rarity-common', color: '#f472b6', stroke: '#db2777', bellyColor: '#fbcfe8', hat: null, valueRange: [150, 300] },
-            'chef': { id: 'chef', name: 'Chef Patrick', emoji: '👨‍🍳', rarity: 'common', rarityClass: 'rarity-common', color: '#fed7aa', stroke: '#f97316', bellyColor: '#ffedd5', hat: 'chef_hat', valueRange: [250, 450] },
-            'patrick_cosplayer': { id: 'patrick_cosplayer', name: 'Patrick Cosplayer', emoji: '🎭', rarity: 'common', rarityClass: 'rarity-common', color: '#38bdf8', stroke: '#0284c7', bellyColor: '#e0f2fe', hat: 'cosplay_mask', valueRange: [200, 400] },
-            'tsundere': { id: 'tsundere', name: 'Tsundere Patrick', emoji: '😤', rarity: 'rare', rarityClass: 'rarity-rare', color: '#f43f5e', stroke: '#be123c', bellyColor: '#ffe4e6', hat: 'twintails', valueRange: [500, 850] },
-            'patriot': { id: 'patriot', name: 'Patriot Patrick', emoji: '🗽', rarity: 'rare', rarityClass: 'rarity-rare', color: '#ef4444', stroke: '#1d4ed8', bellyColor: '#ffffff', hat: 'top_hat', valueRange: [750, 1200] },
-            'ninja': { id: 'ninja', name: 'Ninja Patrick', emoji: '🥷', rarity: 'rare', rarityClass: 'rarity-rare', color: '#1e293b', stroke: '#0f172a', bellyColor: '#334155', hat: 'ninja_mask', valueRange: [500, 800] },
-            'vampire': { id: 'vampire', name: 'Vampire Patrick', emoji: '🧛', rarity: 'rare', rarityClass: 'rarity-rare', color: '#be123c', stroke: '#881337', bellyColor: '#fecdd3', hat: 'visor', valueRange: [600, 900] },
-            'anime': { id: 'anime', name: 'Anime Patrick', emoji: '✨', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#f472b6', stroke: '#c084fc', bellyColor: '#fff1f2', hat: 'anime_hair', aura: '#f472b6', valueRange: [1100, 1700] },
-            'sweetie_fox': { id: 'sweetie_fox', name: 'Sweetie Fox Patrick', emoji: '🦊', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#f97316', stroke: '#c2410c', bellyColor: '#ffedd5', hat: 'fox_ears', aura: '#f97316', valueRange: [1300, 1900] },
-            'cyberpunk': { id: 'cyberpunk', name: 'Cyberpunk Patrick', emoji: '🤖', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#06b6d4', stroke: '#0891b2', bellyColor: '#cffaff', hat: 'visor', aura: '#06b6d4', valueRange: [1200, 1800] },
-            'maharaja': { id: 'maharaja', name: 'Maharaja Patrick', emoji: '👑', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#a855f7', stroke: '#7e22ce', bellyColor: '#f3e8ff', hat: 'turban', aura: '#a855f7', valueRange: [1500, 2200] },
-            'gym_bro': { id: 'gym_bro', name: '★ Gym Bro Patrick', emoji: '🏋️', rarity: 'legendary', rarityClass: 'rarity-legendary', color: '#38bdf8', stroke: '#0284c7', bellyColor: '#e0f2fe', hat: 'gym_belt', aura: '#f97316', valueRange: [2500, 3800] },
-            'cosmic_god': { id: 'cosmic_god', name: '★ Cosmic God Patrick', emoji: '🌌', rarity: 'gold', rarityClass: 'rarity-gold', color: '#fbbf24', stroke: '#d97706', bellyColor: '#fef3c7', hat: 'halo', aura: '#f59e0b', valueRange: [3500, 5000] }
+            'default': { id: 'default', name: 'Default Patrick', emoji: '⭐', rarity: 'common', rarityClass: 'rarity-common', color: '#f472b6', stroke: '#db2777', bellyColor: '#fbcfe8', hat: null, trail: '#84cc16', valueRange: [150, 300] },
+            'chef': { id: 'chef', name: 'Chef Patrick', emoji: '👨‍🍳', rarity: 'common', rarityClass: 'rarity-common', color: '#fed7aa', stroke: '#f97316', bellyColor: '#ffedd5', hat: 'chef_hat', trail: '#fde68a', valueRange: [250, 450] },
+            'patrick_cosplayer': { id: 'patrick_cosplayer', name: 'Patrick Cosplayer', emoji: '🎭', rarity: 'common', rarityClass: 'rarity-common', color: '#38bdf8', stroke: '#0284c7', bellyColor: '#e0f2fe', hat: 'cosplay_mask', trail: '#7dd3fc', valueRange: [200, 400] },
+            'tsundere': { id: 'tsundere', name: 'Tsundere Patrick', emoji: '😤', rarity: 'rare', rarityClass: 'rarity-rare', color: '#f43f5e', stroke: '#be123c', bellyColor: '#ffe4e6', hat: 'twintails', trail: '#fb7185', valueRange: [500, 850] },
+            'patriot': { id: 'patriot', name: 'Patriot Patrick', emoji: '🗽', rarity: 'rare', rarityClass: 'rarity-rare', color: '#ef4444', stroke: '#1d4ed8', bellyColor: '#ffffff', hat: 'top_hat', trail: ['#ef4444', '#ffffff', '#3b82f6'], valueRange: [750, 1200] },
+            'ninja': { id: 'ninja', name: 'Ninja Patrick', emoji: '🥷', rarity: 'rare', rarityClass: 'rarity-rare', color: '#1e293b', stroke: '#0f172a', bellyColor: '#334155', hat: 'ninja_mask', trail: '#64748b', valueRange: [500, 800] },
+            'vampire': { id: 'vampire', name: 'Vampire Patrick', emoji: '🧛', rarity: 'rare', rarityClass: 'rarity-rare', color: '#be123c', stroke: '#881337', bellyColor: '#fecdd3', hat: 'visor', trail: '#dc2626', valueRange: [600, 900] },
+            'anime': { id: 'anime', name: 'Anime Patrick', emoji: '✨', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#f472b6', stroke: '#c084fc', bellyColor: '#fff1f2', hat: 'anime_hair', aura: '#f472b6', trail: '#f9a8d4', valueRange: [1100, 1700] },
+            'sweetie_fox': { id: 'sweetie_fox', name: 'Sweetie Fox Patrick', emoji: '🦊', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#f97316', stroke: '#c2410c', bellyColor: '#ffedd5', hat: 'fox_ears', aura: '#f97316', trail: '#fb923c', valueRange: [1300, 1900] },
+            'cyberpunk': { id: 'cyberpunk', name: 'Cyberpunk Patrick', emoji: '🤖', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#06b6d4', stroke: '#0891b2', bellyColor: '#cffaff', hat: 'visor', aura: '#06b6d4', trail: '#22d3ee', valueRange: [1200, 1800] },
+            'maharaja': { id: 'maharaja', name: 'Maharaja Patrick', emoji: '👑', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#a855f7', stroke: '#7e22ce', bellyColor: '#f3e8ff', hat: 'turban', aura: '#a855f7', trail: '#c084fc', valueRange: [1500, 2200] },
+            'gym_bro': { id: 'gym_bro', name: '★ Gym Bro Patrick', emoji: '🏋️', rarity: 'legendary', rarityClass: 'rarity-legendary', color: '#38bdf8', stroke: '#0284c7', bellyColor: '#e0f2fe', hat: 'gym_belt', aura: '#f97316', trail: '#f97316', valueRange: [2500, 3800] },
+            // ----- Boss drops (can't come from cases) -----
+            'sweaty': { id: 'sweaty', name: '★ Sweaty Patrick', emoji: '💦', rarity: 'legendary', rarityClass: 'rarity-legendary', color: '#fb7185', stroke: '#e11d48', bellyColor: '#ffe4e6', hat: 'headband', trail: '#7dd3fc', aura: '#38bdf8', valueRange: [2500, 3600] },
+            'salad_pat': { id: 'salad_pat', name: 'Salad Patrick', emoji: '🥬', rarity: 'rare', rarityClass: 'rarity-rare', color: '#4ade80', stroke: '#15803d', bellyColor: '#dcfce7', hat: 'leaf_crown', trail: '#a3e635', valueRange: [600, 950] },
+            'calculator': { id: 'calculator', name: 'Calculator Patrick', emoji: '🧮', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#94a3b8', stroke: '#475569', bellyColor: '#e2e8f0', hat: 'glasses', trail: '#4ade80', valueRange: [1200, 1800] },
+            'coach': { id: 'coach', name: 'Coach Patrick', emoji: '📣', rarity: 'mythic', rarityClass: 'rarity-mythic', color: '#f472b6', stroke: '#db2777', bellyColor: '#fbcfe8', hat: 'cap', trail: '#fde047', valueRange: [1200, 1800] },
+            'kiran_pat': { id: 'kiran_pat', name: 'Kiran', emoji: '🐙', rarity: 'legendary', rarityClass: 'rarity-legendary', color: '#c084fc', stroke: '#7e22ce', bellyColor: '#f3e8ff', hat: 'tentacle_hair', trail: ['#7c3aed', '#312e81'], aura: '#a855f7', valueRange: [2500, 3600] },
+            'cracked': { id: 'cracked', name: '★ Cracked Patrick', emoji: '🍘', rarity: 'gold', rarityClass: 'rarity-gold', color: '#e9c46a', stroke: '#a16207', bellyColor: '#fef3c7', hat: 'crown', cracks: true, trail: ['#e9c46a', '#fbbf24'], aura: '#fbbf24', valueRange: [3600, 5200] },
+            // ----- New ones -----
+            'zombie': { id: 'zombie', name: '★ Zombie Patrick', emoji: '🧟', rarity: 'legendary', rarityClass: 'rarity-legendary', color: '#86efac', stroke: '#166534', bellyColor: '#bbf7d0', hat: 'zombie', trail: ['#65a30d', '#3f6212'], aura: '#65a30d', valueRange: [2500, 3700] },
+            'dragon': { id: 'dragon', name: '★ Chinese Dragon Patrick', emoji: '🐉', rarity: 'gold', rarityClass: 'rarity-gold', color: '#dc2626', stroke: '#facc15', bellyColor: '#fde68a', hat: 'dragon', trail: ['#facc15', '#ef4444', '#f97316'], aura: '#facc15', valueRange: [3600, 5200] },
+            'drunk': { id: 'drunk', name: '☠ Drunk Patrick', emoji: '🍺', rarity: 'unhinged', rarityClass: 'rarity-unhinged', color: '#f472b6', stroke: '#be185d', bellyColor: '#fbcfe8', hat: 'drunk', sway: true, trail: ['#fbbf24', '#fef3c7'], aura: '#f59e0b', valueRange: [7000, 10000] },
+            'full': { id: 'full', name: '☠ Full Patrick', emoji: '🍗', rarity: 'unhinged', rarityClass: 'rarity-unhinged', color: '#f9a8d4', stroke: '#db2777', bellyColor: '#fff1f2', hat: 'napkin', wide: 1.35, trail: ['#a16207', '#fde68a'], aura: '#fb923c', valueRange: [7000, 10000] },
+            'strong': { id: 'strong', name: '☠ STRONG Patrick', emoji: '💪', rarity: 'unhinged', rarityClass: 'rarity-unhinged', color: '#ec4899', stroke: '#9d174d', bellyColor: '#fbcfe8', hat: 'muscles', weight: 0.3, trail: ['#ef4444', '#fbbf24', '#ffffff'], aura: '#ef4444', valueRange: [14000, 20000] },
+            'cosmic_god': { id: 'cosmic_god', name: '★ Cosmic God Patrick', emoji: '🌌', rarity: 'gold', rarityClass: 'rarity-gold', color: '#fbbf24', stroke: '#d97706', bellyColor: '#fef3c7', hat: 'halo', aura: '#f59e0b', trail: '#fbbf24', valueRange: [3500, 5000] }
         };
 
-        const RARITY_ORDER = ['common', 'rare', 'mythic', 'legendary', 'gold'];
-        const RARITY_LABEL = { common: 'Common', rare: 'Rare', mythic: 'Mythic', legendary: 'Legendary', gold: '★ Gold' };
+        const RARITY_ORDER = ['common', 'rare', 'mythic', 'legendary', 'gold', 'unhinged'];
+        const RARITY_LABEL = { common: 'Common', rare: 'Rare', mythic: 'Mythic', legendary: 'Legendary', gold: '★ Gold', unhinged: '☠ Unhinged' };
         const RARITY_PILL = {
             common: 'bg-blue-950/60 text-blue-300 border-blue-500/30',
             rare: 'bg-purple-950/60 text-purple-300 border-purple-500/30',
             mythic: 'bg-pink-950/60 text-pink-300 border-pink-500/30',
             legendary: 'bg-orange-950/60 text-orange-300 border-orange-500/30',
-            gold: 'bg-yellow-950/60 text-yellow-300 border-yellow-500/40'
+            gold: 'bg-yellow-950/60 text-yellow-300 border-yellow-500/40',
+            unhinged: 'unhinged-pill text-white border-white/40'
         };
         const RARITY_POOLS = {};
         RARITY_ORDER.forEach(r => { RARITY_POOLS[r] = Object.values(SKINS_DATABASE).filter(s => s.rarity === r); });
+        const skinWeight = (s) => s.weight || 1;
+        const poolWeight = (r) => RARITY_POOLS[r].reduce((a, s) => a + skinWeight(s), 0);
+        function pickFromPool(r) {
+            let x = Math.random() * poolWeight(r);
+            for (const s of RARITY_POOLS[r]) { if ((x -= skinWeight(s)) < 0) return s; }
+            return RARITY_POOLS[r][0];
+        }
 
         // Prices tuned so every case returns roughly the same ~85% average value.
         // (Before, the "better" cases were a scam: Patriot returned ~37% of its cost.)
         const CASE_TIERS = {
-            standard: { id: 'standard', name: 'Standard Case', emoji: '📦', text: 'text-amber-300', cost: 1000, odds: { common: 50, rare: 30, mythic: 12, legendary: 6, gold: 2 } },
-            jumbo: { id: 'jumbo', name: 'Jumbo Case', emoji: '🎁', text: 'text-purple-300', cost: 1400, odds: { common: 30, rare: 35, mythic: 20, legendary: 10, gold: 5 } },
-            patriot: { id: 'patriot', name: 'Patriot Case', emoji: '🗽', text: 'text-red-400', cost: 2200, odds: { common: 5, rare: 30, mythic: 35, legendary: 18, gold: 12 } }
+            standard: { id: 'standard', name: 'Standard Case', emoji: '📦', text: 'text-amber-300', cost: 1000, odds: { common: 50, rare: 30, mythic: 12, legendary: 5.5, gold: 2, unhinged: 0.5 } },
+            jumbo: { id: 'jumbo', name: 'Jumbo Case', emoji: '🎁', text: 'text-purple-300', cost: 1450, odds: { common: 30, rare: 35, mythic: 20, legendary: 9.5, gold: 4.5, unhinged: 1 } },
+            patriot: { id: 'patriot', name: 'Patriot Case', emoji: '🗽', text: 'text-red-400', cost: 2350, odds: { common: 5, rare: 30, mythic: 35, legendary: 17, gold: 10.5, unhinged: 2.5 } }
         };
 
         const avgValue = (skin) => (skin.valueRange[0] + skin.valueRange[1]) / 2;
-        const poolAvg = (r) => RARITY_POOLS[r].reduce((a, s) => a + avgValue(s), 0) / RARITY_POOLS[r].length;
+        const poolAvg = (r) => RARITY_POOLS[r].reduce((a, s) => a + avgValue(s) * skinWeight(s), 0) / poolWeight(r);
         const caseExpectedValue = (tier) => RARITY_ORDER.reduce((a, r) => a + CASE_TIERS[tier].odds[r] / 100 * poolAvg(r), 0);
         const rollValue = (skin) => Math.floor(skin.valueRange[0] + Math.random() * (skin.valueRange[1] - skin.valueRange[0]));
 
@@ -580,7 +613,7 @@
             const odds = CASE_TIERS[tierKey].odds;
             let roll = Math.random() * 100;
             for (const r of [...RARITY_ORDER].reverse()) {
-                if (roll < odds[r]) return pick(RARITY_POOLS[r]);
+                if (roll < odds[r]) return pickFromPool(r);
                 roll -= odds[r];
             }
             return pick(RARITY_POOLS.common);
@@ -603,6 +636,7 @@
             calories: 0,
             equippedSkin: 'default',
             discovered: ['default'],
+            bossKills: {},
             inventory: [{ instanceId: 'starter_default', skinId: 'default', snackTrak: 0, quickSellVal: 100 }],
             upgrades: { thickSkin: 0, spicyBelch: 0, magnet: 0, shoes: 0, bigBelly: 0 },
             bestScore: 0,
@@ -655,6 +689,7 @@
 
         loadSaveData();
         if (!Array.isArray(saveData.discovered)) saveData.discovered = ['default'];
+        if (!saveData.bossKills || typeof saveData.bossKills !== 'object') saveData.bossKills = {};
         saveData.discovered = saveData.discovered.filter(id => SKINS_DATABASE[id]);
         saveData.inventory.forEach(i => discover(i.skinId));
         discover('default');
@@ -743,6 +778,10 @@
                     case 'slam': this.playFartSFX(50, 0.35, 0.6); break;
                     case 'hurt': this.playFartSFX(90, 0.2, 0.4); this.tone(200, 0.2, 0.08, 'square'); break;
                     case 'pop': this.tone(520, 0.08, 0.08, 'square'); break;
+                    case 'whistle': [2300, 2700, 2300, 2700, 2300].forEach((f, i) => this.tone(f, 0.06, 0.05, 'square', i * 0.06)); break;
+                    case 'laser': this.tone(220, 0.45, 0.09, 'sawtooth'); this.tone(110, 0.45, 0.09, 'sawtooth'); this.tone(1760, 0.3, 0.03, 'square'); break;
+                    case 'charge': this.playFartSFX(55, 0.6, 0.5); this.tone(90, 0.5, 0.1, 'sawtooth'); break;
+                    case 'splat': this.playFartSFX(140, 0.22, 0.35); break;
                     case 'coin': this.tone(988, 0.08, 0.07, 'square'); this.tone(1319, 0.14, 0.07, 'square', 0.07); break;
                     case 'wave': [392, 523, 659].forEach((f, i) => this.tone(f, 0.18, 0.08, 'square', i * 0.08)); break;
                     case 'boss': [110, 98, 82].forEach((f, i) => this.tone(f, 0.35, 0.14, 'sawtooth', i * 0.18)); break;
@@ -750,6 +789,10 @@
                     case 'drop_common': this.tone(523, 0.18, 0.1); break;
                     case 'drop_rare': [523, 659, 784].forEach((f, i) => this.tone(f, 0.2, 0.1, 'triangle', i * 0.07)); break;
                     case 'drop_mythic': [587, 740, 880, 1175].forEach((f, i) => this.tone(f, 0.25, 0.1, 'triangle', i * 0.07)); break;
+                    case 'drop_unhinged':
+                        [262, 330, 392, 523, 659, 784, 1047, 1319, 1568].forEach((f, i) => this.tone(f, 0.3, 0.09, i % 2 ? 'square' : 'sawtooth', i * 0.07));
+                        this.playFartSFX(40, 1.4, 0.6); this.playFartSFX(300, 0.8, 0.3);
+                        break;
                     case 'drop_gold': [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.35, 0.1, 'square', i * 0.08)); this.playFartSFX(300, 0.6, 0.45); break;
                 }
             }
@@ -783,7 +826,7 @@
 
         const audio = new SoundEngine();
         audio.isMuted = !!saveData.muted;
-        const dropSfx = (skin) => ({ common: 'drop_common', rare: 'drop_rare', mythic: 'drop_mythic', legendary: 'drop_gold', gold: 'drop_gold' })[skin.rarity];
+        const dropSfx = (skin) => ({ common: 'drop_common', rare: 'drop_rare', mythic: 'drop_mythic', legendary: 'drop_gold', gold: 'drop_gold', unhinged: 'drop_unhinged' })[skin.rarity];
 
         // ============================================================
         //  WORLD
@@ -824,6 +867,7 @@
                 this.invulnerableTimer = 0;
                 this.bellySquash = 1.0;
                 this.bellyWobbleTime = 0;
+                this.slippery = false;
             }
 
             update(keys) {
@@ -834,7 +878,7 @@
                 } else if (keys['KeyD'] || keys['ArrowRight']) {
                     this.vx = this.speed; this.facing = 1;
                 } else {
-                    this.vx *= 0.75;
+                    this.vx *= this.slippery ? 0.965 : 0.75;
                 }
 
                 this.vy += 0.65;
@@ -864,8 +908,9 @@
                             if (this.isSlamming) {
                                 this.isSlamming = false;
                                 this.bellySquash = 0.6;
+                                runStats.slams++;
                                 addShake(6, 8);
-                                createParticles(this.x + this.w / 2, this.y + this.h, '#84cc16', 12);
+                                fartPuff(this.x + this.w / 2, this.y + this.h, 12);
                             }
                         }
                     }
@@ -880,14 +925,16 @@
                     this.vy = this.jumpForce;
                     this.bellySquash = 1.3;
                     audio.playSFX('jump');
-                    createParticles(this.x + this.w / 2, this.y + this.h, '#84cc16', 6);
+                    runStats.jumps++;
+                    fartPuff(this.x + this.w / 2, this.y + this.h, 6);
                 } else if (this.sodaCharges > 0) {
                     this.sodaCharges--;
                     this.vy = this.jumpForce * 0.9;
                     this.isSlamming = false;
                     this.bellySquash = 1.2;
                     audio.playSFX('soda');
-                    createParticles(this.x + this.w / 2, this.y + this.h, '#84cc16', 10);
+                    runStats.jumps++;
+                    fartPuff(this.x + this.w / 2, this.y + this.h, 10);
                     updateHUD();
                 }
             }
@@ -900,7 +947,8 @@
                 if (this.facing === -1) ctx.scale(-1, 1);
 
                 const skin = skinOverride || SKINS_DATABASE[saveData.equippedSkin] || SKINS_DATABASE['default'];
-                const width = this.w;
+                if (skin.sway) ctx.rotate(Math.sin(this.bellyWobbleTime * 0.45) * 0.13);
+                const width = this.w * (skin.wide || 1);
                 const height = this.h * this.bellySquash;
 
                 // ground shadow
@@ -919,6 +967,13 @@
                 ctx.strokeStyle = skin.stroke;
                 ctx.stroke();
                 ctx.shadowBlur = 0;
+
+                if (skin.cracks) {
+                    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(-width / 2 + 2, -6); ctx.lineTo(-12, -2); ctx.lineTo(-16, 10); ctx.lineTo(-8, 18); ctx.stroke();
+                    ctx.fillStyle = '#a16207';
+                    [[-14, -18], [14, 22], [-18, 20]].forEach(([hx, hy]) => { ctx.beginPath(); ctx.arc(hx, hy, 2, 0, Math.PI * 2); ctx.fill(); });
+                }
 
                 const wobble = Math.sin(this.bellyWobbleTime) * 3;
                 ctx.fillStyle = skin.bellyColor;
@@ -992,6 +1047,120 @@
                     ctx.lineTo(0, -height / 1.8);
                     ctx.lineTo(width / 2, -height / 4);
                     ctx.fill();
+                } else if (skin.hat === 'headband') {
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(-width / 2 + 3, -height / 2.6, width - 6, 7);
+                    ctx.fillRect(-width / 2 - 4, -height / 2.6 + 2, 8, 4);
+                    ctx.fillStyle = '#7dd3fc';
+                    const dy = (this.bellyWobbleTime * 4) % 20;
+                    ctx.beginPath(); ctx.arc(-width / 3, -height / 5 + dy, 3, 0, Math.PI * 2); ctx.fill();
+                } else if (skin.hat === 'leaf_crown') {
+                    ctx.fillStyle = '#16a34a';
+                    for (let i = -1; i <= 1; i++) {
+                        ctx.beginPath(); ctx.ellipse(i * 11, -height / 2 - 4, 7, 13, i * 0.5, 0, Math.PI * 2); ctx.fill();
+                    }
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath(); ctx.arc(0, -height / 2 - 2, 5, 0, Math.PI * 2); ctx.fill();
+                } else if (skin.hat === 'glasses') {
+                    // one lens for his one eye, arm going back to the ear
+                    ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5;
+                    ctx.strokeRect(0, -height / 4 - 8, 17, 15);
+                    ctx.beginPath(); ctx.moveTo(0, -height / 4 - 4); ctx.lineTo(-width / 2 + 5, -height / 4 - 1); ctx.stroke();
+                    ctx.fillStyle = 'rgba(191,219,254,0.35)';
+                    ctx.fillRect(1, -height / 4 - 7, 15, 13);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(12, -height / 4 - 6, 2, 5);
+                } else if (skin.hat === 'cap') {
+                    ctx.fillStyle = '#1d4ed8';
+                    ctx.beginPath(); ctx.arc(0, -height / 2 + 6, 20, Math.PI, 0); ctx.fill();
+                    ctx.fillRect(0, -height / 2 + 2, 30, 6);
+                    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(-6, -height / 2 + 12); ctx.quadraticCurveTo(4, 6, 12, 14); ctx.stroke();
+                    ctx.fillStyle = '#cbd5e1';
+                    ctx.beginPath(); ctx.arc(14, 15, 4, 0, Math.PI * 2); ctx.fill();
+                } else if (skin.hat === 'tentacle_hair') {
+                    ctx.strokeStyle = '#7e22ce'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+                    for (let i = -1; i <= 1; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(i * 10, -height / 2 + 4);
+                        ctx.quadraticCurveTo(i * 14 + Math.sin(this.bellyWobbleTime + i) * 6, -height / 2 - 12, i * 8 + Math.sin(this.bellyWobbleTime * 1.3 + i) * 8, -height / 2 - 20);
+                        ctx.stroke();
+                    }
+                    ctx.lineCap = 'butt';
+                } else if (skin.hat === 'crown') {
+                    ctx.fillStyle = '#facc15';
+                    ctx.beginPath();
+                    ctx.moveTo(-14, -height / 2 + 4); ctx.lineTo(-14, -height / 2 - 12); ctx.lineTo(-7, -height / 2 - 4); ctx.lineTo(0, -height / 2 - 16);
+                    ctx.lineTo(7, -height / 2 - 4); ctx.lineTo(14, -height / 2 - 12); ctx.lineTo(14, -height / 2 + 4); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath(); ctx.arc(0, -height / 2 - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+                } else if (skin.hat === 'zombie') {
+                    // stitches + eye bag + exposed brain bit
+                    ctx.strokeStyle = '#14532d'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(-width / 2 + 6, -4); ctx.lineTo(-4, 6); ctx.stroke();
+                    for (let i = 0; i < 4; i++) {
+                        const sx = -width / 2 + 9 + i * 6, sy = -2 + i * 2.5;
+                        ctx.beginPath(); ctx.moveTo(sx - 2, sy - 4); ctx.lineTo(sx + 2, sy + 4); ctx.stroke();
+                    }
+                    ctx.fillStyle = 'rgba(88,28,135,0.5)';
+                    ctx.beginPath(); ctx.ellipse(8, -height / 4 + 7, 7, 3, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#f9a8d4';
+                    ctx.beginPath(); ctx.arc(-6, -height / 2 + 6, 9, Math.PI, 0); ctx.fill();
+                    ctx.strokeStyle = '#db2777'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.arc(-9, -height / 2 + 5, 3, Math.PI, 0); ctx.arc(-3, -height / 2 + 5, 3, Math.PI, 0); ctx.stroke();
+                } else if (skin.hat === 'dragon') {
+                    // golden horns, flowing whiskers, scale pattern
+                    ctx.fillStyle = '#facc15';
+                    ctx.beginPath(); ctx.moveTo(-10, -height / 2 + 4); ctx.quadraticCurveTo(-22, -height / 2 - 14, -8, -height / 2 - 22); ctx.quadraticCurveTo(-12, -height / 2 - 8, -2, -height / 2 + 2); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(4, -height / 2 + 2); ctx.quadraticCurveTo(0, -height / 2 - 16, 16, -height / 2 - 20); ctx.quadraticCurveTo(8, -height / 2 - 6, 14, -height / 2 + 4); ctx.fill();
+                    ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2;
+                    const wv = Math.sin(this.bellyWobbleTime) * 4;
+                    ctx.beginPath(); ctx.moveTo(18, -height / 4 + 8); ctx.quadraticCurveTo(34, -height / 4 + 4 + wv, 38, -height / 4 + 18 - wv); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(18, -height / 4 + 11); ctx.quadraticCurveTo(30, -height / 4 + 18 + wv, 30, -height / 4 + 28); ctx.stroke();
+                    ctx.strokeStyle = 'rgba(250,204,21,0.55)'; ctx.lineWidth = 1.5;
+                    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(-width / 4 + i * 7, height / 4, 5, Math.PI, 0); ctx.stroke(); }
+                } else if (skin.hat === 'drunk') {
+                    // heavy eyelid, red cheeks, hiccup bubbles
+                    ctx.fillStyle = skin.color;
+                    ctx.beginPath(); ctx.arc(8, -height / 4, 6.5, Math.PI, 0); ctx.fill();
+                    ctx.strokeStyle = skin.stroke; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(1.5, -height / 4); ctx.lineTo(14.5, -height / 4); ctx.stroke();
+                    ctx.fillStyle = 'rgba(239,68,68,0.55)';
+                    ctx.beginPath(); ctx.ellipse(16, -height / 4 + 12, 6, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(-6, -height / 4 + 12, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = 'rgba(254,243,199,0.9)'; ctx.lineWidth = 1.5;
+                    for (let i = 0; i < 3; i++) {
+                        const ph = (this.bellyWobbleTime * 0.4 + i * 2.1) % 6;
+                        ctx.globalAlpha = Math.max(0, 1 - ph / 6);
+                        ctx.beginPath(); ctx.arc(18 + Math.sin(ph * 2 + i) * 4, -height / 2 - ph * 6, 2 + i, 0, Math.PI * 2); ctx.stroke();
+                    }
+                    ctx.globalAlpha = 1;
+                } else if (skin.hat === 'napkin') {
+                    // bib tucked under the chin, sauce stain, crumbs
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.moveTo(-width / 4, -height / 10); ctx.lineTo(width / 4 + 6, -height / 10); ctx.lineTo(4, height / 4); ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(-width / 4 + 4, -height / 10 + 4); ctx.lineTo(width / 4 + 2, -height / 10 + 4); ctx.stroke();
+                    ctx.fillStyle = '#dc2626';
+                    ctx.beginPath(); ctx.arc(6, 2, 3.5, 0, Math.PI * 2); ctx.arc(10, 5, 2, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#b45309';
+                    [[-14, 18], [18, 14], [-4, 22]].forEach(([cx2, cy2]) => { ctx.fillRect(cx2, cy2, 3, 3); });
+                } else if (skin.hat === 'muscles') {
+                    // flexing arms + headband + angry brow
+                    const flex = Math.sin(this.bellyWobbleTime * 0.8) * 3;
+                    ctx.fillStyle = skin.color; ctx.strokeStyle = skin.stroke; ctx.lineWidth = 2.5;
+                    [-1, 1].forEach(sd => {
+                        ctx.beginPath();
+                        ctx.ellipse(sd * (width / 2 + 6), -2, 11, 8, sd * -0.5, 0, Math.PI * 2);
+                        ctx.fill(); ctx.stroke();
+                        ctx.beginPath();
+                        ctx.ellipse(sd * (width / 2 + 12), -16 - flex, 11 + flex / 2, 9 + flex / 2, 0, 0, Math.PI * 2);
+                        ctx.fill(); ctx.stroke();
+                    });
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(-width / 2 + 3, -height / 2.5, width - 6, 6);
+                    ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(2, -height / 4 - 10); ctx.lineTo(15, -height / 4 - 6); ctx.stroke();
                 } else if (skin.hat === 'fox_ears') {
                     ctx.fillStyle = '#ea580c';
                     ctx.beginPath();
@@ -1093,7 +1262,7 @@
                 this.damage = 25 + saveData.upgrades.spicyBelch * 15;
                 this.life = 60;
             }
-            update() { this.x += this.vx; this.life--; createParticles(this.x, this.y, '#84cc16', 2); }
+            update() { this.x += this.vx; this.life--; fartPuff(this.x, this.y, 2); }
             draw() {
                 ctx.font = `${this.radius * 2}px sans-serif`;
                 ctx.textAlign = 'center';
@@ -1141,6 +1310,17 @@
 
         let particles = [];
         let floatTexts = [];
+        // Every skin farts in its own color. Gold skins fart sparkles.
+        function fartColor() {
+            const skin = SKINS_DATABASE[saveData.equippedSkin] || SKINS_DATABASE['default'];
+            const t = skin.trail || '#84cc16';
+            return Array.isArray(t) ? pick(t) : t;
+        }
+        function fartPuff(x, y, n) {
+            const skin = SKINS_DATABASE[saveData.equippedSkin] || SKINS_DATABASE['default'];
+            for (let i = 0; i < n; i++) particles.push(new Particle(x, y, fartColor()));
+            if (skin.rarity === 'gold') for (let i = 0; i < Math.ceil(n / 2); i++) { const p = new Particle(x, y, pick(['#fef9c3', '#ffffff', '#fde047'])); p.radius *= 0.6; p.life += 10; particles.push(p); }
+        }
         function createParticles(x, y, color, count = 8) {
             for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
         }
@@ -1149,102 +1329,1027 @@
         let shakeTime = 0, shakeMag = 0;
         function addShake(time, mag) { shakeTime = Math.max(shakeTime, time); shakeMag = Math.max(shakeTime > 0 ? shakeMag : 0, mag); }
 
-        class Boss {
-            constructor(wave) {
-                this.wave = wave;
-                this.maxHp = 250 + wave * 100;
-                this.hp = this.maxHp;
-                this.w = 110; this.h = 110;
-                this.x = GAME_WIDTH / 2 - this.w / 2;
-                this.y = 80;
-                this.vx = 4;
-                this.isEnraged = false;
-                this.telegraphTimer = 0;
-                this.weakSpotTimer = 0;
-                this.hitFlash = 0;
-                this.warnings = [];
+        // ============================================================
+        //  BOSSES
+        //  Every boss runs a loop of "attacks". Each attack is a little state machine
+        //  with update() (returns true when finished) and an optional draw().
+        // ============================================================
+        const FLOOR_Y = 550;
+        const HOVER_Y = 80;
+        const runStats = { jumps: 0, slams: 0 };
+        let renderAlpha = 1;
 
-                if (wave % 9 === 3) { this.name = 'Dr. Treadmill 🏃‍♂️'; this.color = '#ef4444'; }
-                else if (wave % 9 === 6) { this.name = 'Chef Saladin 🥗'; this.color = '#10b981'; }
-                else { this.name = 'The Calorie Counter 🔢'; this.color = '#8b5cf6'; }
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        function playerBox() { return { x: player.x + 9, y: player.y + 6, w: player.w - 18, h: player.h - 8 }; }
+        function rectHit(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+        function drawEmoji(e, x, y, size) {
+            ctx.font = `${size}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(e, x, y);
+        }
+        function outlinedText(text, x, y, size, color, font = 'Fredoka One') {
+            ctx.font = `${size}px "${font}", sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.lineWidth = Math.max(4, size / 6);
+            ctx.strokeStyle = 'rgba(2,6,23,0.9)';
+            ctx.strokeText(text, x, y);
+            ctx.fillStyle = color;
+            ctx.fillText(text, x, y);
+        }
+        // Top of the highest surface at/below height y, at horizontal position x
+        function surfaceBelow(x, y) {
+            let best = FLOOR_Y;
+            for (const p of PLATFORMS) if (x >= p.x && x <= p.x + p.w && p.y >= y - 4 && p.y < best) best = p.y;
+            return best;
+        }
+
+        // ---------- Attacks ----------
+        class DropAttack {
+            constructor(b, count, emoji = null, gap = 38) { this.b = b; this.left = count; this.emoji = emoji; this.gap = gap; this.t = 0; }
+            update(p) {
+                this.t--;
+                if (this.left > 0 && this.t <= 0) {
+                    this.b.telegraphDrop(p.x + p.w / 2, this.emoji);
+                    this.left--;
+                    this.t = this.b.isEnraged ? this.gap * 0.7 : this.gap;
+                }
+                return this.left <= 0 && this.t <= -30;
+            }
+        }
+
+        // Boss drops to the floor on the far side, winds up, then sprints across. Hits the wall -> dizzy.
+        class ChargeAttack {
+            constructor(b, times) {
+                this.b = b; this.times = times; this.state = 'descend'; this.t = 0;
+                b.anchored = true;
+                const pc = player.x + player.w / 2;
+                this.sideX = pc < GAME_WIDTH / 2 ? GAME_WIDTH - 14 - b.w : 14;
+                this.dir = this.sideX < GAME_WIDTH / 2 ? 1 : -1;
+            }
+            update() {
+                const b = this.b;
+                if (this.state === 'descend') {
+                    b.x += (this.sideX - b.x) * 0.1;
+                    b.y += (FLOOR_Y - b.h - b.y) * 0.1;
+                    if (Math.abs(this.sideX - b.x) < 3 && Math.abs(FLOOR_Y - b.h - b.y) < 3) {
+                        b.x = this.sideX; b.y = FLOOR_Y - b.h;
+                        this.state = 'windup'; this.t = b.isEnraged ? 42 : 58;
+                        audio.playSFX('charge');
+                    }
+                } else if (this.state === 'windup') {
+                    b.shakeX = (Math.random() - 0.5) * 5;
+                    if (--this.t <= 0) { this.state = 'charge'; b.shakeX = 0; b.contactDamage = true; }
+                } else if (this.state === 'charge') {
+                    b.x += this.dir * (b.isEnraged ? 13 : 10);
+                    if (this.t++ % 3 === 0) createParticles(b.x + (this.dir > 0 ? 0 : b.w), FLOOR_Y - 4, '#94a3b8', 2);
+                    const hitWall = this.dir > 0 ? b.x + b.w >= GAME_WIDTH - 12 : b.x <= 12;
+                    if (hitWall) {
+                        b.x = clamp(b.x, 12, GAME_WIDTH - 12 - b.w);
+                        addShake(14, 10);
+                        audio.playSFX('slam');
+                        createParticles(this.dir > 0 ? GAME_WIDTH - 14 : 14, b.y + b.h / 2, '#fbbf24', 18);
+                        this.times--;
+                        if (this.times > 0) {
+                            this.dir *= -1; this.state = 'windup'; this.t = 30; b.contactDamage = false;
+                        } else {
+                            b.contactDamage = false;
+                            this.state = 'dizzy';
+                            this.t = b.isEnraged ? 120 : 160;
+                            b.dizzy = this.t;
+                            b.setWeak(this.t);
+                            floatText(b.x + b.w / 2, b.y - 20, 'DIZZY! SLAM HIM!', '#fbbf24', 20);
+                        }
+                    }
+                } else if (this.state === 'dizzy') {
+                    if (--this.t <= 0) { b.dizzy = 0; b.anchored = false; return true; }
+                }
+                return false;
+            }
+            draw() {
+                if (this.state !== 'windup') return;
+                const a = 0.15 + 0.15 * Math.sin(this.t * 0.6);
+                ctx.fillStyle = `rgba(239,68,68,${a})`;
+                ctx.fillRect(0, FLOOR_Y - this.b.h, GAME_WIDTH, this.b.h);
+                outlinedText(this.dir > 0 ? 'CHARGE ▶▶▶' : '◀◀◀ CHARGE', GAME_WIDTH / 2, FLOOR_Y - this.b.h - 26, 26, '#fca5a5');
+            }
+        }
+
+        // Horizontal laser: warns at your height, then fires. Jump or drop out of the band.
+        class LaserAttack {
+            constructor(b, beams) { this.b = b; this.left = beams; this.beam = null; this.gap = 0; }
+            update(p) {
+                const b = this.b;
+                if (!this.beam) {
+                    if (this.left <= 0) return true;
+                    if (this.gap-- > 0) return false;
+                    const cy = clamp(p.y + p.h / 2, 45, FLOOR_Y - 30);
+                    this.beam = { y: cy - 34, h: 68, state: 'warn', t: (b.isEnraged ? 48 : 62) + (b.id === 'calories' ? 18 : 0) };
+                    this.left--;
+                    audio.tone(880, 0.1, 0.05, 'square');
+                }
+                const bm = this.beam;
+                if (bm.state === 'warn') {
+                    if (bm.t % 12 === 0) audio.tone(880, 0.05, 0.04, 'square');
+                    if (--bm.t <= 0) { bm.state = 'fire'; bm.t = 26; audio.playSFX('laser'); addShake(10, 5); }
+                } else {
+                    if (rectHit(playerBox(), { x: 0, y: bm.y + 8, w: GAME_WIDTH, h: bm.h - 16 })) damagePlayer(1);
+                    if (--bm.t <= 0) { this.beam = null; this.gap = 20; }
+                }
+                return false;
+            }
+            draw() {
+                const bm = this.beam;
+                if (!bm) return;
+                const ex = this.b.x + this.b.w / 2, ey = this.b.y + this.b.h / 2;
+                if (bm.state === 'warn') {
+                    const a = 0.12 + 0.1 * Math.sin(bm.t * 0.7);
+                    ctx.fillStyle = `rgba(236,72,153,${a})`;
+                    ctx.fillRect(0, bm.y, GAME_WIDTH, bm.h);
+                    ctx.setLineDash([14, 10]);
+                    ctx.strokeStyle = 'rgba(244,114,182,0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(-2, bm.y, GAME_WIDTH + 4, bm.h);
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = 'rgba(244,114,182,0.35)';
+                    ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex, bm.y + bm.h / 2); ctx.stroke();
+                    drawEmoji('⚠️', 24, bm.y + bm.h / 2, 22);
+                    drawEmoji('⚠️', GAME_WIDTH - 24, bm.y + bm.h / 2, 22);
+                } else {
+                    const g = ctx.createLinearGradient(0, bm.y, 0, bm.y + bm.h);
+                    g.addColorStop(0, 'rgba(236,72,153,0)');
+                    g.addColorStop(0.3, 'rgba(244,114,182,0.9)');
+                    g.addColorStop(0.5, 'rgba(255,255,255,1)');
+                    g.addColorStop(0.7, 'rgba(244,114,182,0.9)');
+                    g.addColorStop(1, 'rgba(236,72,153,0)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, bm.y, GAME_WIDTH, bm.h);
+                }
+            }
+        }
+
+        // Aimed number projectiles
+        class NumberShot {
+            constructor(b, count, emoji = null) { this.b = b; this.left = count; this.t = 0; this.emoji = emoji; }
+            update(p) {
+                const b = this.b;
+                this.t--;
+                if (this.left > 0 && this.t <= 0) {
+                    const sx = b.x + b.w / 2, sy = b.y + b.h / 2;
+                    const dx = p.x + p.w / 2 - sx, dy = p.y + p.h / 2 - sy;
+                    const d = Math.hypot(dx, dy) || 1;
+                    const sp = (b.isEnraged ? 6.5 : 5) * (b.id === 'calories' ? 0.8 : 1);
+                    b.projectiles.push({
+                        x: sx, y: sy, vx: dx / d * sp, vy: dy / d * sp, g: 0, r: 16, dmg: 1,
+                        text: this.emoji ? null : pick(['7', '4', '9', '0', '3', '8']), emoji: this.emoji, rot: 0, spin: 0.15
+                    });
+                    audio.tone(1200, 0.05, 0.05, 'square');
+                    this.left--;
+                    this.t = (b.isEnraged ? 16 : 24) * (b.id === 'calories' ? 1.4 : 1);
+                }
+                return this.left <= 0 && this.t <= -25;
+            }
+        }
+
+        // Lobbed salad bowls that leave slippery dressing puddles
+        class BowlLob {
+            constructor(b, count) { this.b = b; this.left = count; this.t = 0; }
+            update(p) {
+                const b = this.b;
+                this.t--;
+                if (this.left > 0 && this.t <= 0) {
+                    const sx = b.x + b.w / 2, sy = b.y + b.h;
+                    const tx = p.x + p.w / 2 + (Math.random() - 0.5) * 120;
+                    const ty = surfaceBelow(tx, p.y + p.h - 4);
+                    const g = 0.25, vy0 = -4;
+                    const dy = ty - sy;
+                    const T = (-vy0 + Math.sqrt(vy0 * vy0 + 2 * g * Math.max(dy, 10))) / g;
+                    b.projectiles.push({
+                        x: sx, y: sy, vx: (tx - sx) / T, vy: vy0, g, r: 16, dmg: 1, emoji: '🥣', rot: 0, spin: 0.2,
+                        onLand: (pr, surf) => {
+                            b.puddles.push({ x: pr.x - 45, y: surf, w: 90, life: b.isEnraged ? 300 : 220 });
+                            createParticles(pr.x, surf - 6, '#bef264', 10);
+                            audio.playSFX('splat');
+                        }
+                    });
+                    this.left--;
+                    this.t = 22;
+                }
+                return this.left <= 0 && this.t <= -40;
+            }
+        }
+
+        // Minions that drop from the boss and walk at you. Stomp them.
+        class MinionAttack {
+            constructor(b, count, emoji, after) { this.b = b; this.left = count; this.emoji = emoji; this.t = 0; this.after = after; }
+            update() {
+                const b = this.b;
+                this.t--;
+                if (this.left > 0 && this.t <= 0 && b.minions.length >= 3) { this.left = 0; }
+                if (this.left > 0 && this.t <= 0) {
+                    b.minions.push({ life: 480,
+                        x: b.x + b.w / 2 - 18 + (Math.random() - 0.5) * 30, y: b.y + b.h - 10, w: 36, h: 36,
+                        vx: Math.random() < 0.5 ? -1 : 1, vy: -3, emoji: this.emoji, bob: Math.random() * 6
+                    });
+                    audio.playSFX('pop');
+                    this.left--;
+                    this.t = 30;
+                }
+                if (this.left <= 0 && this.t <= -20) { if (this.after) this.after(); return true; }
+                return false;
+            }
+        }
+
+        // Tentacles burst out of whatever you're standing on
+        class TentacleAttack {
+            constructor(b, count, style = 'kiran') { this.b = b; this.left = count; this.t = 0; this.style = style; }
+            update(p) {
+                const b = this.b;
+                this.t--;
+                if (this.left > 0 && this.t <= 0) {
+                    const cx = clamp(p.x + p.w / 2, 40, GAME_WIDTH - 40);
+                    b.tentacles.push({
+                        x: cx - 23, w: 46, baseY: surfaceBelow(cx, p.y + p.h - 6), h: 0, maxH: 96,
+                        state: 'warn', t: b.isEnraged ? 42 : 55, style: this.style, wig: Math.random() * 6
+                    });
+                    this.left--;
+                    this.t = b.isEnraged ? 48 : 70;
+                }
+                return this.left <= 0 && this.t <= -60;
+            }
+        }
+
+        class InkAttack {
+            constructor(b) { this.b = b; }
+            update() {
+                for (let i = 0; i < 3; i++) {
+                    this.b.inks.push({ x: 150 + Math.random() * 700, y: 120 + Math.random() * 360, r: 70 + Math.random() * 50, life: 220, max: 220, seed: Math.random() * 10 });
+                }
+                audio.playSFX('splat');
+                floatText(this.b.x + this.b.w / 2, this.b.y + this.b.h + 20, '*INK*', '#c4b5fd', 22);
+                return true;
+            }
+        }
+
+        // Training's drills: do what he says. Nothing falls while he's giving orders.
+        const DRILLS = [
+            { id: 'jumps', text: 'JUMP 3 TIMES!', limit: 240, start(d) { d.j0 = runStats.jumps; }, progress(d) { return `${Math.min(3, runStats.jumps - d.j0)}/3`; }, check(d) { return runStats.jumps - d.j0 >= 3 ? 'pass' : null; } },
+            { id: 'freeze', text: "DON'T MOVE!", limit: 150, timeout: 'pass', start(d) { d.x0 = player.x; d.j0 = runStats.jumps; }, check(d) { return (Math.abs(player.x - d.x0) > 14 || runStats.jumps > d.j0) ? 'fail' : null; } },
+            { id: 'left', text: 'TOUCH THE LEFT WALL!', limit: 230, check() { return player.x <= 14 ? 'pass' : null; } },
+            { id: 'right', text: 'TOUCH THE RIGHT WALL!', limit: 230, check() { return player.x + player.w >= GAME_WIDTH - 14 ? 'pass' : null; } },
+            { id: 'top', text: 'GET TO THE TOP!', limit: 330, check() { return (player.isGrounded && player.y + player.h <= 181) ? 'pass' : null; } },
+            { id: 'slam', text: 'BELLY SLAM!', limit: 240, start(d) { d.s0 = runStats.slams; }, check(d) { return runStats.slams > d.s0 ? 'pass' : null; } },
+            { id: 'floor', text: 'TOUCH THE FLOOR!', limit: 200, check() { return (player.isGrounded && player.y + player.h >= FLOOR_Y - 1) ? 'pass' : null; } }
+        ];
+
+        class DrillAttack {
+            constructor(b) {
+                this.b = b;
+                const p = player;
+                // skip drills you'd already be passing
+                const pool = DRILLS.filter(d => d.id !== b.lastDrill &&
+                    !(d.id === 'top' && p.y + p.h <= 181) &&
+                    !(d.id === 'floor' && p.y + p.h >= FLOOR_Y - 1) &&
+                    !(d.id === 'left' && p.x < 200) &&
+                    !(d.id === 'right' && p.x > GAME_WIDTH - 260));
+                this.drill = pick(pool);
+                b.lastDrill = this.drill.id;
+                this.state = 'announce';
+                this.t = 70;
+                this.limit = Math.round(this.drill.limit * (b.isEnraged ? 0.75 : 1));
+                // whistle clears the air
+                b.warnings = [];
+                skyHazards.forEach(h => { if (h.type === 'hazard') createParticles(h.x + h.w / 2, h.y + h.h / 2, '#fde68a', 6); });
+                skyHazards = skyHazards.filter(h => h.type !== 'hazard');
+                audio.playSFX('whistle');
+            }
+            update() {
+                const b = this.b;
+                if (this.state === 'announce') {
+                    if (--this.t <= 0) {
+                        this.state = 'active';
+                        this.t = this.limit;
+                        if (this.drill.start) this.drill.start(this);
+                        audio.playSFX('whistle');
+                    }
+                } else if (this.state === 'active') {
+                    let r = this.drill.check(this);
+                    if (!r && --this.t <= 0) r = this.drill.timeout || 'fail';
+                    if (r) this.finish(r);
+                } else if (this.state === 'result') {
+                    if (--this.t <= 0) return true;
+                }
+                return false;
+            }
+            finish(r) {
+                const b = this.b;
+                this.state = 'result';
+                this.result = r;
+                this.t = 60;
+                if (r === 'pass') {
+                    audio.playSFX('coin');
+                    b.setWeak(150);
+                    b.takeHit(Math.round(b.maxHp * 0.12), 'drill', b.x + b.w / 2, b.y + b.h + 10);
+                } else {
+                    audio.tone(160, 0.3, 0.1, 'sawtooth');
+                    damagePlayer(1);
+                }
+            }
+            drawOverlay() {
+                const y = 215;
+                if (this.state === 'announce') {
+                    const s = 1 + Math.max(0, (this.t - 55) * 0.03);
+                    ctx.save(); ctx.translate(GAME_WIDTH / 2, y); ctx.scale(s, s);
+                    outlinedText('📣 ' + this.drill.text, 0, 0, 40, '#fde68a');
+                    ctx.restore();
+                    outlinedText('get ready...', GAME_WIDTH / 2, y + 38, 18, '#e2e8f0', 'Nunito');
+                } else if (this.state === 'active') {
+                    outlinedText('📣 ' + this.drill.text, GAME_WIDTH / 2, y, 40, '#fbbf24');
+                    const pct = this.t / this.limit;
+                    ctx.fillStyle = 'rgba(2,6,23,0.7)';
+                    rr(GAME_WIDTH / 2 - 150, y + 30, 300, 12, 6); ctx.fill();
+                    ctx.fillStyle = pct > 0.35 ? '#fbbf24' : '#ef4444';
+                    rr(GAME_WIDTH / 2 - 150, y + 30, 300 * pct, 12, 6); ctx.fill();
+                    if (this.drill.progress) outlinedText(this.drill.progress(this), GAME_WIDTH / 2, y + 64, 22, '#fff', 'Nunito');
+                } else {
+                    const pass = this.result === 'pass';
+                    outlinedText(pass ? 'GOOD FORM! 💪' : 'PATHETIC! 🤡', GAME_WIDTH / 2, y, 44, pass ? '#34d399' : '#f87171');
+                }
+            }
+        }
+
+        // ---------- Base boss ----------
+        class Boss {
+            constructor(wave, def) {
+                this.wave = wave;
+                this.def = def;
+                this.id = def.id;
+                this.name = def.name;
+                this.color = def.color;
+                this.maxHp = Math.round((250 + wave * 100) * (def.hpMult || 1));
+                this.hp = this.maxHp;
+                this.w = def.w || 110; this.h = def.h || 110;
+                this.x = GAME_WIDTH / 2 - this.w / 2;
+                this.y = -this.h - 20;
+                this.homeY = HOVER_Y;
+                this.dir = 1;
+                this.speed = def.speed || 3;
+                this.isEnraged = false;
+                this.hitFlash = 0; this.weakTicks = 0; this.invuln = 0;
+                this.shield = false; this.shieldFlash = 0;
+                this.anchored = false; this.contactDamage = false; this.dizzy = 0; this.shakeX = 0;
+                this.attack = null; this.cooldown = 100; this.step = 0;
+                this.warnings = []; this.projectiles = []; this.minions = []; this.puddles = []; this.tentacles = []; this.inks = [];
+                this.conveyor = 0;
+                this.t = 0;
             }
 
-            get weak() { return this.weakSpotTimer > 130; }
+            get weak() { return this.weakTicks > 0; }
+            setWeak(t) { this.weakTicks = Math.max(this.weakTicks, t); }
+            onEnrage() {}
+            pattern() { return [() => new DropAttack(this, 3)]; }
+            nextAttack() { const p = this.pattern(); return p[this.step++ % p.length](); }
+            dead() { return currentBoss !== this; }
 
-            update(player) {
-                if (!this.isEnraged && this.hp <= this.maxHp / 2) {
-                    this.isEnraged = true;
-                    showBanner('ENRAGED!', 'It\'s getting angry', '#ef4444', 70);
-                    addShake(15, 10);
+            telegraphDrop(cx, emoji) {
+                this.warnings.push({ x: clamp(cx - 18, 10, GAME_WIDTH - 46), t: 45, emoji });
+            }
+
+            takeHit(dmg, source, fx, fy) {
+                if (this.invuln > 0) { floatText(fx, fy, 'IMMUNE', '#94a3b8', 16); return 0; }
+                if (this.shield && source === 'chili') {
+                    this.shieldFlash = 12;
+                    floatText(fx, fy, 'BLOCKED 🛡️', '#a5b4fc', 18);
+                    audio.tone(300, 0.1, 0.08, 'square');
+                    return 0;
                 }
+                if (this.shield && source === 'slam') this.breakShield();
+                let mult = 1;
+                if (this.weak && source === 'slam') mult = 2;
+                else if (this.weak && source === 'chili') mult = 1.5;
+                const d = Math.round(dmg * mult);
+                this.hp -= d;
+                this.hitFlash = 8;
+                const crit = mult > 1;
+                floatText(fx, fy, crit ? `CRIT -${d}` : `-${d}`, crit ? '#fbbf24' : (source === 'chili' ? '#bef264' : '#fca5a5'), crit ? 26 : 20);
+                updateHUD();
+                if (this.hp <= 0) defeatBoss();
+                return d;
+            }
+            breakShield() {}
 
-                const speed = this.isEnraged ? Math.abs(this.vx) * 1.5 : Math.abs(this.vx);
-                this.x += (this.vx > 0 ? 1 : -1) * speed;
-                if (this.x < 50) { this.x = 50; this.vx = Math.abs(this.vx); }
-                if (this.x + this.w > GAME_WIDTH - 50) { this.x = GAME_WIDTH - 50 - this.w; this.vx = -Math.abs(this.vx); }
-
-                this.weakSpotTimer = (this.weakSpotTimer + 1) % 200;
+            update(p) {
+                this.t++;
                 if (this.hitFlash > 0) this.hitFlash--;
+                if (this.weakTicks > 0) this.weakTicks--;
+                if (this.shieldFlash > 0) this.shieldFlash--;
+                if (this.invuln > 0) this.invuln--;
+                p.slippery = false;
+                if (p.slamGrace > 0) p.slamGrace--;
 
-                // Telegraphed drops: red warning column first, then the hazard falls there
-                this.telegraphTimer++;
-                if (this.telegraphTimer > (this.isEnraged ? 70 : 120)) {
-                    this.telegraphTimer = 0;
-                    const x = Math.max(10, Math.min(GAME_WIDTH - 46, player.x + player.w / 2 - 18));
-                    this.warnings.push({ x, t: 45 });
+                if (!this.isEnraged && !this.def.noEnrage && this.hp <= this.maxHp / 2) {
+                    this.isEnraged = true;
+                    showBanner('ENRAGED!', this.def.enrageLine || "It's getting angry", '#ef4444', 80);
+                    addShake(15, 10);
+                    this.onEnrage();
                 }
+
+                if (!this.anchored) this.hover();
+
+                if (this.attack) {
+                    if (this.attack.update(p)) { this.attack = null; this.cooldown = this.isEnraged ? 30 : 55; }
+                    if (this.dead()) return;
+                } else if (this.y > this.homeY - 20 && --this.cooldown <= 0) {
+                    this.attack = this.nextAttack();
+                }
+
+                this.checkBodySlam(p); if (this.dead()) return;
+                if (this.contactDamage && rectHit(playerBox(), { x: this.x + 10, y: this.y + 10, w: this.w - 20, h: this.h - 10 })) damagePlayer(1);
+
+                this.updateWarnings();
+                this.updateProjectiles(p);
+                this.updateMinions(p); if (this.dead()) return;
+                this.updatePuddles(p);
+                this.updateTentacles(p); if (this.dead()) return;
+                for (let i = this.inks.length - 1; i >= 0; i--) if (--this.inks[i].life <= 0) this.inks.splice(i, 1);
+            }
+
+            hover() {
+                this.y += (this.homeY - this.y) * 0.08;
+                const sp = this.speed * (this.isEnraged ? 1.5 : 1);
+                this.x += this.dir * sp;
+                if (this.x < 50) { this.x = 50; this.dir = 1; }
+                if (this.x + this.w > GAME_WIDTH - 50) { this.x = GAME_WIDTH - 50 - this.w; this.dir = -1; }
+            }
+
+            checkBodySlam(p) {
+                const overlapX = p.x + p.w * 0.8 > this.x && p.x + p.w * 0.2 < this.x + this.w;
+                const feet = p.y + p.h;
+                if (p.isSlamming && p.vy > 0 && overlapX && feet >= this.y - 5 && feet <= this.y + 45) {
+                    p.vy = -12;
+                    p.isSlamming = false;
+                    audio.playSFX('slam');
+                    addShake(10, this.weak ? 12 : 7);
+                    createParticles(p.x + p.w / 2, feet, this.weak ? '#f59e0b' : '#ef4444', 20);
+                    this.takeHit(40, 'slam', this.x + this.w / 2, this.y - 10);
+                }
+            }
+
+            // returns true if the chili fart got used up
+            chiliHit(fb) {
+                for (let i = this.minions.length - 1; i >= 0; i--) {
+                    const m = this.minions[i];
+                    if (Math.hypot(fb.x - (m.x + m.w / 2), fb.y - (m.y + m.h / 2)) < fb.radius + 18) {
+                        this.killMinion(i); return true;
+                    }
+                }
+                for (const t of this.tentacles) {
+                    if (t.h > 12 && t.state !== 'down' && rectHit({ x: fb.x - fb.radius / 2, y: fb.y - fb.radius / 2, w: fb.radius, h: fb.radius }, { x: t.x, y: t.baseY - t.h, w: t.w, h: t.h })) {
+                        t.state = 'down';
+                        createParticles(fb.x, fb.y, fartColor(), 12);
+                        this.takeHit(Math.round(fb.damage * 0.6), 'chili', fb.x, fb.y - 20);
+                        return true;
+                    }
+                }
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const pr = this.projectiles[i];
+                    if (Math.hypot(fb.x - pr.x, fb.y - pr.y) < fb.radius + pr.r) {
+                        this.projectiles.splice(i, 1);
+                        score += 15;
+                        createParticles(pr.x, pr.y, '#e2e8f0', 8);
+                        floatText(pr.x, pr.y, '+15', '#bef264', 13);
+                        audio.playSFX('pop');
+                        return false; // chili keeps flying
+                    }
+                }
+                if (Math.hypot(fb.x - (this.x + this.w / 2), fb.y - (this.y + this.h / 2)) < this.w / 2 + fb.radius * 0.5) {
+                    audio.playSFX('slam');
+                    createParticles(fb.x, fb.y, fartColor(), 15);
+                    this.takeHit(fb.damage, 'chili', fb.x, fb.y - 20);
+                    return true;
+                }
+                return false;
+            }
+
+            killMinion(i) {
+                const m = this.minions[i];
+                this.minions.splice(i, 1);
+                score += 50;
+                createParticles(m.x + m.w / 2, m.y + m.h / 2, '#4ade80', 14);
+                floatText(m.x + m.w / 2, m.y, '+50', '#bef264', 15);
+                audio.playSFX('pop');
+                updateHUD();
+            }
+
+            updateWarnings() {
                 for (let i = this.warnings.length - 1; i >= 0; i--) {
                     const w = this.warnings[i];
                     if (--w.t <= 0) {
-                        skyHazards.push(new SkyHazard(w.x, Math.random() < 0.75));
+                        const h = new SkyHazard(w.x, Math.random() < 0.8);
+                        if (w.emoji) { h.emoji = w.emoji; h.type = 'hazard'; h.dmg = 1; }
+                        skyHazards.push(h);
                         this.warnings.splice(i, 1);
                     }
                 }
             }
 
+            updateProjectiles(p) {
+                const pb = playerBox();
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const pr = this.projectiles[i];
+                    const prevY = pr.y;
+                    pr.vy += pr.g;
+                    pr.x += pr.vx; pr.y += pr.vy;
+                    pr.rot += pr.spin;
+                    if (pr.onLand && pr.vy > 0) {
+                        const surf = PLATFORMS.find(pl => pr.x >= pl.x && pr.x <= pl.x + pl.w && prevY <= pl.y && pr.y >= pl.y);
+                        if (surf) { pr.onLand(pr, surf.y); this.projectiles.splice(i, 1); continue; }
+                    }
+                    if (Math.hypot(pr.x - (pb.x + pb.w / 2), pr.y - (pb.y + pb.h / 2)) < pr.r + 20) {
+                        this.projectiles.splice(i, 1);
+                        damagePlayer(pr.dmg);
+                        continue;
+                    }
+                    if (pr.x < -60 || pr.x > GAME_WIDTH + 60 || pr.y > GAME_HEIGHT + 60 || pr.y < -200) this.projectiles.splice(i, 1);
+                }
+            }
+
+            updateMinions(p) {
+                const pb = playerBox();
+                const sp = (this.isEnraged ? 2.3 : 1.6) * (this.id === 'salad' ? 0.75 : 1);
+                for (let i = this.minions.length - 1; i >= 0; i--) {
+                    const m = this.minions[i];
+                    m.bob += 0.2;
+                    if (m.life != null && --m.life <= 0) {
+                        createParticles(m.x + m.w / 2, m.y + m.h / 2, '#a3e635', 8);
+                        this.minions.splice(i, 1);
+                        continue;
+                    }
+                    if (m.y + m.h < FLOOR_Y) {
+                        m.vy += 0.5; m.y += m.vy;
+                        if (m.y + m.h >= FLOOR_Y) { m.y = FLOOR_Y - m.h; m.vy = 0; }
+                    } else {
+                        const target = p.x + p.w / 2 - (m.x + m.w / 2);
+                        if (Math.abs(target) > 6) m.vx = Math.sign(target);
+                        m.x = clamp(m.x + m.vx * sp, 10, GAME_WIDTH - 10 - m.w);
+                    }
+                    if (rectHit(pb, m)) {
+                        const feet = p.y + p.h;
+                        if (p.vy > 0 && feet < m.y + 20) {
+                            p.vy = p.isSlamming ? -12 : -9;
+                            p.isSlamming = false;
+                            this.killMinion(i);
+                            if (this.dead()) return;
+                        } else {
+                            damagePlayer(1);
+                        }
+                    }
+                }
+            }
+
+            updatePuddles(p) {
+                const cx = p.x + p.w / 2, feet = p.y + p.h;
+                for (let i = this.puddles.length - 1; i >= 0; i--) {
+                    const pd = this.puddles[i];
+                    if (--pd.life <= 0) { this.puddles.splice(i, 1); continue; }
+                    if (p.isGrounded && Math.abs(feet - pd.y) < 3 && cx > pd.x && cx < pd.x + pd.w) p.slippery = true;
+                }
+            }
+
+            updateTentacles(p) {
+                const pb = playerBox();
+                for (let i = this.tentacles.length - 1; i >= 0; i--) {
+                    const t = this.tentacles[i];
+                    t.wig += 0.12;
+                    if (t.state === 'warn') {
+                        if (--t.t <= 0) { t.state = 'rise'; audio.playSFX('splat'); addShake(6, 4); createParticles(t.x + t.w / 2, t.baseY, '#a855f7', 12); }
+                        continue;
+                    }
+                    if (t.state === 'rise') { t.h += 12; if (t.h >= t.maxH) { t.h = t.maxH; t.state = 'up'; t.t = this.isEnraged ? 80 : 110; } }
+                    else if (t.state === 'up') { if (--t.t <= 0) t.state = 'down'; }
+                    else if (t.state === 'down') { t.h -= 7; if (t.h <= 0) { this.tentacles.splice(i, 1); continue; } }
+
+                    const top = t.baseY - t.h;
+                    const overlapX = pb.x + pb.w > t.x && pb.x < t.x + t.w;
+                    const feet = p.y + p.h;
+                    if (t.state !== 'down' && p.isSlamming && p.vy > 0 && overlapX && feet >= top - 16 && feet <= top + 44) {
+                        t.state = 'down';
+                        p.vy = -12; p.isSlamming = false;
+                        audio.playSFX('slam');
+                        addShake(10, 8);
+                        createParticles(t.x + t.w / 2, top, '#e9d5ff', 18);
+                        p.slamGrace = 30; // no cheap hits right after a good slam
+                        this.takeHit(45, 'slam', t.x + t.w / 2, top - 20);
+                        if (this.dead()) return;
+                        continue;
+                    }
+                    // Only the rising/standing body hurts. The tip (top 16px) is safe to touch,
+                    // slamming down onto it is safe, and a retracting tentacle is harmless.
+                    const slammingIn = p.isSlamming && p.vy > 0 && feet <= top + 44;
+                    if (t.state !== 'down' && !slammingIn && !(p.slamGrace > 0) && t.h > 20 &&
+                        rectHit(pb, { x: t.x + 13, y: top + 16, w: t.w - 26, h: t.h - 16 })) damagePlayer(1);
+                }
+            }
+
+            // ---------- drawing ----------
             draw() {
                 for (const w of this.warnings) {
                     const a = 0.12 + 0.12 * Math.sin(w.t * 0.5);
                     ctx.fillStyle = `rgba(239,68,68,${a})`;
                     ctx.fillRect(w.x, 0, 36, GAME_HEIGHT);
-                    ctx.font = '22px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('⚠️', w.x + 18, 22);
+                    drawEmoji('⚠️', w.x + 18, 22, 22);
                 }
+                this.drawFloorFx();
+                for (const pd of this.puddles) {
+                    const a = Math.min(1, pd.life / 60);
+                    ctx.globalAlpha = a * 0.85;
+                    ctx.fillStyle = '#a3e635';
+                    ctx.beginPath(); ctx.ellipse(pd.x + pd.w / 2, pd.y + 1, pd.w / 2, 7, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.beginPath(); ctx.ellipse(pd.x + pd.w / 2 - 18, pd.y - 1, 14, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+                this.tentacles.forEach(t => this.drawTentacle(t));
+                if (this.attack && this.attack.draw) this.attack.draw();
 
                 ctx.save();
-                ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
-
+                ctx.translate(this.x + this.w / 2 + this.shakeX, this.y + this.h / 2);
                 if (this.weak) {
                     ctx.strokeStyle = '#f59e0b';
                     ctx.lineWidth = 6;
                     ctx.shadowColor = '#f59e0b';
                     ctx.shadowBlur = 20;
                     ctx.beginPath();
-                    ctx.arc(0, 0, this.w / 1.8, 0, Math.PI * 2);
+                    ctx.arc(0, 0, Math.max(this.w, this.h) / 1.75, 0, Math.PI * 2);
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                 }
+                this.drawBody();
+                if (this.shield) {
+                    ctx.strokeStyle = this.shieldFlash > 0 ? '#ffffff' : 'rgba(129,140,248,0.9)';
+                    ctx.fillStyle = 'rgba(99,102,241,0.15)';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.arc(0, 0, Math.max(this.w, this.h) / 1.5 + Math.sin(this.t * 0.1) * 3, 0, Math.PI * 2);
+                    ctx.fill(); ctx.stroke();
+                }
+                if (this.dizzy > 0) {
+                    for (let i = 0; i < 3; i++) {
+                        const a = this.t * 0.12 + i * Math.PI * 2 / 3;
+                        drawEmoji('⭐', Math.cos(a) * 34, -this.h / 2 - 12 + Math.sin(a) * 8, 18);
+                    }
+                }
+                ctx.restore();
 
-                ctx.fillStyle = this.hitFlash > 0 ? '#ffffff' : (this.isEnraged ? '#dc2626' : this.color);
-                rr(-this.w / 2, -this.h / 2, this.w, this.h, 24);
-                ctx.fill();
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = '#ffffff';
-                ctx.stroke();
+                this.minions.forEach(m => drawLerp(m, renderAlpha, (o) => {
+                    ctx.globalAlpha = o.life != null && o.life < 60 ? (o.life % 10 < 5 ? 0.35 : 1) : 1;
+                    const squish = 1 + Math.sin(o.bob) * 0.08;
+                    ctx.save();
+                    ctx.translate(o.x + o.w / 2, o.y + o.h);
+                    ctx.scale(1 / squish, squish);
+                    drawEmoji(o.emoji, 0, -o.h / 2, 32);
+                    ctx.restore();
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath(); ctx.moveTo(o.x + o.w / 2 - 5, o.y - 10); ctx.lineTo(o.x + o.w / 2 + 5, o.y - 10); ctx.lineTo(o.x + o.w / 2, o.y - 3); ctx.fill();
+                    ctx.globalAlpha = 1;
+                }));
+                this.projectiles.forEach(pr => drawLerp(pr, renderAlpha, (o) => {
+                    ctx.save();
+                    ctx.translate(o.x, o.y);
+                    ctx.rotate(o.rot);
+                    if (o.text) outlinedText(o.text, 0, 0, 34, '#86efac', 'Fredoka One');
+                    else drawEmoji(o.emoji, 0, 0, 30);
+                    ctx.restore();
+                }));
+            }
 
-                ctx.fillStyle = this.hitFlash > 0 ? '#0f172a' : '#ffffff';
-                ctx.font = 'bold 13px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.isEnraged ? '⚡ ENRAGED ⚡' : this.name, 0, -18);
-                ctx.font = '36px sans-serif';
-                ctx.fillText(this.isEnraged ? '😡' : '🤖', 0, 20);
+            drawFloorFx() {}
 
+            drawTentacle(t) {
+                const cx = t.x + t.w / 2;
+                if (t.state === 'warn') {
+                    const a = 0.3 + 0.3 * Math.sin(t.t * 0.6);
+                    ctx.fillStyle = t.style === 'cracker' ? `rgba(217,119,6,${a})` : `rgba(168,85,247,${a})`;
+                    ctx.beginPath(); ctx.ellipse(cx, t.baseY, 32, 7, 0, 0, Math.PI * 2); ctx.fill();
+                    drawEmoji('⚠️', cx, t.baseY - 22, 20);
+                    return;
+                }
+                const top = t.baseY - t.h;
+                const cracker = t.style === 'cracker';
+                ctx.save();
+                ctx.fillStyle = cracker ? '#e9c46a' : '#a855f7';
+                ctx.strokeStyle = cracker ? '#a16207' : '#6b21a8';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                const segs = 8;
+                for (let s = 0; s <= segs; s++) {
+                    const yy = t.baseY - (t.h * s / segs);
+                    const wob = cracker ? 0 : Math.sin(t.wig + s * 0.8) * 5 * (s / segs);
+                    const half = (t.w / 2) * (1 - s / segs * 0.45);
+                    if (s === 0) ctx.moveTo(cx - half + wob, yy); else ctx.lineTo(cx - half + wob, yy);
+                }
+                ctx.arc(cx + (cracker ? 0 : Math.sin(t.wig + 6.4) * 5), top, t.w / 2 * 0.55, Math.PI, 0);
+                for (let s = segs; s >= 0; s--) {
+                    const yy = t.baseY - (t.h * s / segs);
+                    const wob = cracker ? 0 : Math.sin(t.wig + s * 0.8) * 5 * (s / segs);
+                    const half = (t.w / 2) * (1 - s / segs * 0.45);
+                    ctx.lineTo(cx + half + wob, yy);
+                }
+                ctx.closePath(); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = cracker ? '#a16207' : '#f0abfc';
+                for (let s = 1; s < 5 && s * 24 < t.h; s++) {
+                    ctx.beginPath(); ctx.arc(cx + (cracker ? (s % 2 ? -7 : 7) : 6), t.baseY - s * 24, cracker ? 3 : 5, 0, Math.PI * 2); ctx.fill();
+                }
+                // slam target marker
+                if (t.state === 'up') {
+                    ctx.strokeStyle = 'rgba(251,191,36,0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(cx, top - 16 + Math.sin(this.t * 0.2) * 3, 7, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx - 5, top - 26 + Math.sin(this.t * 0.2) * 3); ctx.lineTo(cx, top - 20 + Math.sin(this.t * 0.2) * 3); ctx.lineTo(cx + 5, top - 26 + Math.sin(this.t * 0.2) * 3); ctx.stroke();
+                }
                 ctx.restore();
             }
+
+            baseBody(color, radius = 24) {
+                ctx.fillStyle = this.hitFlash > 0 ? '#ffffff' : color;
+                rr(-this.w / 2, -this.h / 2, this.w, this.h, radius);
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = this.isEnraged ? '#fca5a5' : '#ffffff';
+                ctx.stroke();
+            }
+
+            face(y = 0, angry = this.isEnraged) {
+                const blink = this.t % 180 < 6;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(-16, y - 8, 11, 0, Math.PI * 2); ctx.arc(16, y - 8, 11, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#0f172a';
+                if (blink || this.dizzy > 0) {
+                    ctx.fillRect(-24, y - 9, 16, 3); ctx.fillRect(8, y - 9, 16, 3);
+                } else {
+                    const lx = clamp((player.x + player.w / 2 - (this.x + this.w / 2)) / 120, -4, 4);
+                    const ly = clamp((player.y - this.y) / 150, -3, 4);
+                    ctx.beginPath(); ctx.arc(-16 + lx, y - 8 + ly, 5, 0, Math.PI * 2); ctx.arc(16 + lx, y - 8 + ly, 5, 0, Math.PI * 2); ctx.fill();
+                }
+                if (angry) {
+                    ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.moveTo(-28, y - 24); ctx.lineTo(-6, y - 16); ctx.moveTo(28, y - 24); ctx.lineTo(6, y - 16); ctx.stroke();
+                }
+                ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3;
+                ctx.beginPath();
+                if (this.weak) ctx.arc(0, y + 18, 8, 0, Math.PI * 2);
+                else if (angry) ctx.arc(0, y + 22, 10, Math.PI + 0.3, -0.3);
+                else ctx.arc(0, y + 10, 10, 0.3, Math.PI - 0.3);
+                ctx.stroke();
+            }
+
+            drawBody() {
+                this.baseBody(this.color);
+                this.face();
+            }
+
+            drawOverlay() {
+                for (const ink of this.inks) {
+                    const a = Math.min(1, ink.life / 40, (ink.max - ink.life) / 10);
+                    ctx.globalAlpha = a * 0.93;
+                    ctx.fillStyle = '#0b0618';
+                    ctx.beginPath();
+                    for (let k = 0; k < 10; k++) {
+                        const ang = k / 10 * Math.PI * 2;
+                        const rr2 = ink.r * (0.75 + 0.25 * Math.sin(ink.seed + k * 2.3));
+                        ctx.lineTo(ink.x + Math.cos(ang) * rr2, ink.y + Math.sin(ang) * rr2);
+                    }
+                    ctx.closePath(); ctx.fill();
+                    for (let k = 0; k < 4; k++) {
+                        ctx.beginPath(); ctx.arc(ink.x + Math.cos(ink.seed + k) * ink.r * 1.2, ink.y + Math.sin(ink.seed * 2 + k) * ink.r * 1.1, 10 + k * 3, 0, Math.PI * 2); ctx.fill();
+                    }
+                    ctx.globalAlpha = 1;
+                }
+                if (this.attack && this.attack.drawOverlay) this.attack.drawOverlay();
+            }
         }
+
+        // ---------- The bosses ----------
+        class TreadmillBoss extends Boss {
+            constructor(wave) { super(wave, BOSS_DEFS.treadmill); this.conveyor = 1.3; this.beltT = 0; }
+            pattern() {
+                return [() => new DropAttack(this, 3), () => new ChargeAttack(this, this.isEnraged ? 2 : 1)];
+            }
+            onEnrage() { this.conveyor = Math.sign(this.conveyor) * 2.1; }
+            update(p) {
+                if (this.t % 420 === 419) {
+                    this.conveyor *= -1;
+                    floatText(GAME_WIDTH / 2, FLOOR_Y - 20, this.conveyor > 0 ? 'BELT ▶▶' : '◀◀ BELT', '#fca5a5', 18);
+                }
+                this.beltT += this.conveyor;
+                super.update(p);
+            }
+            drawFloorFx() {
+                ctx.save();
+                ctx.beginPath(); ctx.rect(0, FLOOR_Y, GAME_WIDTH, 50); ctx.clip();
+                ctx.fillStyle = 'rgba(239,68,68,0.10)';
+                ctx.fillRect(0, FLOOR_Y, GAME_WIDTH, 50);
+                ctx.strokeStyle = 'rgba(248,113,113,0.5)';
+                ctx.lineWidth = 3;
+                const dir = Math.sign(this.conveyor) || 1;
+                const off = ((this.beltT % 40) + 40) % 40;
+                for (let x = -40 + off; x < GAME_WIDTH + 40; x += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(x - 6 * dir, FLOOR_Y + 14); ctx.lineTo(x + 6 * dir, FLOOR_Y + 25); ctx.lineTo(x - 6 * dir, FLOOR_Y + 36);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+            drawBody() {
+                this.baseBody(this.isEnraged ? '#dc2626' : this.color, 30);
+                // sweatband
+                ctx.fillStyle = this.hitFlash > 0 ? '#ddd' : '#fde047';
+                ctx.fillRect(-this.w / 2 + 4, -this.h / 2 + 12, this.w - 8, 10);
+                this.face(8);
+                // legs going brrr
+                const run = Math.sin(this.t * (this.contactDamage ? 0.9 : 0.25)) * 10;
+                ctx.fillStyle = '#7f1d1d';
+                ctx.fillRect(-26 + run, this.h / 2 - 4, 16, 10);
+                ctx.fillRect(10 - run, this.h / 2 - 4, 16, 10);
+                if (this.t % 50 < 25) drawEmoji('💦', this.w / 2 - 6, -this.h / 2 + 4, 16);
+            }
+        }
+
+        class SaladBoss extends Boss {
+            constructor(wave) { super(wave, BOSS_DEFS.salad); }
+            pattern() {
+                return [
+                    () => new BowlLob(this, this.isEnraged ? 3 : 2),
+                    () => new MinionAttack(this, 2, '🥬', () => {
+                        this.setWeak(220);
+                        floatText(this.x + this.w / 2, this.y + this.h + 16, '*tasting the dressing*', '#bbf7d0', 16);
+                    }),
+                    () => new DropAttack(this, 2, '🥦')
+                ];
+            }
+            drawBody() {
+                // bowl
+                ctx.fillStyle = this.hitFlash > 0 ? '#fff' : (this.isEnraged ? '#b91c1c' : '#0f766e');
+                ctx.beginPath(); ctx.ellipse(0, 6, this.w / 2, this.h / 2 - 6, 0, 0, Math.PI); ctx.fill();
+                // salad
+                const leaf = this.hitFlash > 0 ? '#fff' : '#22c55e';
+                ctx.fillStyle = leaf;
+                for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.arc(i * 20, 4 - Math.abs(i) * 2, 22, Math.PI, 0); ctx.fill(); }
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(-30, -6, 7, 0, Math.PI * 2); ctx.arc(26, -4, 6, 0, Math.PI * 2); ctx.fill();
+                // chef hat
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(-14, -this.h / 2 - 2, 16, 0, Math.PI * 2); ctx.arc(14, -this.h / 2 - 2, 16, 0, Math.PI * 2); ctx.arc(0, -this.h / 2 - 12, 18, 0, Math.PI * 2); ctx.fill();
+                ctx.fillRect(-22, -this.h / 2 + 4, 44, 12);
+                ctx.save(); ctx.translate(0, 30); ctx.scale(0.8, 0.8); this.face(0); ctx.restore();
+            }
+        }
+
+        class CaloriesBoss extends Boss {
+            constructor(wave) { super(wave, BOSS_DEFS.calories); this.shieldRegen = 0; }
+            pattern() {
+                return [() => new LaserAttack(this, this.isEnraged ? 2 : 1), () => new NumberShot(this, this.isEnraged ? 4 : 3), () => new DropAttack(this, 2)];
+            }
+            onEnrage() { this.shield = true; floatText(this.x + this.w / 2, this.y + this.h + 20, 'SHIELD UP 🛡️ (slam it!)', '#a5b4fc', 18); }
+            breakShield() {
+                this.shield = false;
+                this.shieldRegen = 780;
+                this.setWeak(240);
+                addShake(12, 9);
+                createParticles(this.x + this.w / 2, this.y + this.h / 2, '#818cf8', 30);
+                floatText(this.x + this.w / 2, this.y - 30, 'SHIELD BROKEN!', '#c7d2fe', 22);
+            }
+            update(p) {
+                if (this.isEnraged && !this.shield && --this.shieldRegen <= 0) {
+                    this.shield = true;
+                    floatText(this.x + this.w / 2, this.y + this.h + 20, 'SHIELD UP 🛡️', '#a5b4fc', 18);
+                }
+                super.update(p);
+            }
+            drawBody() {
+                this.baseBody(this.isEnraged ? '#6d28d9' : this.color, 16);
+                // LCD
+                ctx.fillStyle = '#052e16';
+                rr(-this.w / 2 + 12, -this.h / 2 + 10, this.w - 24, 30, 6); ctx.fill();
+                ctx.font = 'bold 17px "Courier New", monospace';
+                ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#4ade80';
+                ctx.fillText(`${Math.max(0, Math.ceil(this.hp))}kcal`, this.w / 2 - 18, -this.h / 2 + 26);
+                // buttons
+                for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+                    ctx.fillStyle = c === 3 ? '#f97316' : '#e2e8f0';
+                    rr(-this.w / 2 + 14 + c * 22, -this.h / 2 + 48 + r * 18, 16, 12, 3); ctx.fill();
+                }
+            }
+        }
+
+        class TrainingBoss extends Boss {
+            constructor(wave) { super(wave, BOSS_DEFS.training); this.lastDrill = null; }
+            pattern() {
+                return this.isEnraged
+                    ? [() => new DrillAttack(this), () => new DropAttack(this, 3, '🏋️'), () => new NumberShot(this, 3, '🏐')]
+                    : [() => new DrillAttack(this), () => new DropAttack(this, 3)];
+            }
+            drawBody() {
+                this.baseBody(this.isEnraged ? '#c2410c' : this.color, 28);
+                // cap
+                ctx.fillStyle = this.hitFlash > 0 ? '#ddd' : '#1d4ed8';
+                ctx.beginPath(); ctx.arc(0, -this.h / 2 + 8, 34, Math.PI, 0); ctx.fill();
+                ctx.fillRect(0, -this.h / 2 + 4, 48, 8);
+                this.face(12);
+                // whistle
+                const blowing = this.attack instanceof DrillAttack && this.attack.state !== 'result';
+                ctx.fillStyle = '#cbd5e1';
+                ctx.beginPath(); ctx.arc(20, 38, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.fillRect(4, 34, 16, 6);
+                if (blowing && this.t % 20 < 12) drawEmoji('💨', 36, 30, 16);
+            }
+        }
+
+        class KiranBoss extends Boss {
+            constructor(wave) { super(wave, BOSS_DEFS.kiran); }
+            pattern() {
+                return this.isEnraged
+                    ? [() => new InkAttack(this), () => new TentacleAttack(this, 4), () => new DropAttack(this, 2)]
+                    : [() => new TentacleAttack(this, 3), () => new DropAttack(this, 2)];
+            }
+            drawBody() {
+                const col = this.hitFlash > 0 ? '#fff' : (this.isEnraged ? '#7e22ce' : this.color);
+                ctx.strokeStyle = col; ctx.lineWidth = 9; ctx.lineCap = 'round';
+                for (let i = 0; i < 6; i++) {
+                    const bx = -this.w / 2 + 14 + i * ((this.w - 28) / 5);
+                    ctx.beginPath(); ctx.moveTo(bx, this.h / 4);
+                    ctx.quadraticCurveTo(bx + Math.sin(this.t * 0.1 + i) * 14, this.h / 2 + 10, bx + Math.sin(this.t * 0.1 + i + 1) * 10, this.h / 2 + 26);
+                    ctx.stroke();
+                }
+                ctx.lineCap = 'butt';
+                ctx.fillStyle = col;
+                ctx.beginPath(); ctx.ellipse(0, -4, this.w / 2, this.h / 2 - 2, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,0.18)';
+                ctx.beginPath(); ctx.ellipse(-18, -26, 18, 10, -0.4, 0, Math.PI * 2); ctx.fill();
+                this.face(4);
+            }
+        }
+
+        class CrackerBoss extends Boss {
+            constructor(wave) { super(wave, BOSS_DEFS.cracker); this.phase = 1; this.homeY = 88; }
+            pattern() {
+                if (this.phase === 1) return [() => new ChargeAttack(this, 1), () => new DropAttack(this, 4, '🍘')];
+                if (this.phase === 2) return [() => new LaserAttack(this, 2), () => new MinionAttack(this, 3, '🍪', () => this.setWeak(110)), () => new DropAttack(this, 3, '🍘')];
+                return [() => new TentacleAttack(this, 3, 'cracker'), () => new ChargeAttack(this, 2), () => new LaserAttack(this, 2), () => new MinionAttack(this, 2, '🍪'), () => new NumberShot(this, 5, '🧂')];
+            }
+            update(p) {
+                const ph = this.hp > this.maxHp * 0.66 ? 1 : this.hp > this.maxHp * 0.33 ? 2 : 3;
+                if (ph !== this.phase && this.hp > 0) {
+                    this.phase = ph;
+                    this.step = 0;
+                    this.invuln = 90;
+                    this.cooldown = 90;
+                    if (this.attack && this.attack instanceof ChargeAttack) { this.anchored = false; this.contactDamage = false; this.dizzy = 0; }
+                    this.attack = null;
+                    this.isEnraged = ph === 3;
+                    addShake(25, 14);
+                    audio.playSFX('boss');
+                    createParticles(this.x + this.w / 2, this.y + this.h / 2, '#e9c46a', 40);
+                    showBanner(`PHASE ${ph}`, ph === 2 ? 'Getting crunchy' : 'FULLY CRACKED. Everything at once.', ph === 2 ? '#fbbf24' : '#ef4444', 110);
+                }
+                super.update(p);
+            }
+            drawBody() {
+                this.baseBody(this.hitFlash > 0 ? '#fff' : (this.phase === 3 ? '#c08a3e' : this.color), 14);
+                // cracker holes
+                ctx.fillStyle = '#a16207';
+                for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+                    if (r === 1 && (c === 1 || c === 2)) continue;
+                    ctx.beginPath(); ctx.arc(-this.w / 2 + 22 + c * 29, -this.h / 2 + 20 + r * 40, 4, 0, Math.PI * 2); ctx.fill();
+                }
+                // cracks grow per phase
+                ctx.strokeStyle = '#3f2a0a'; ctx.lineWidth = 3;
+                if (this.phase >= 2) { ctx.beginPath(); ctx.moveTo(-this.w / 2, -20); ctx.lineTo(-40, -10); ctx.lineTo(-48, 10); ctx.lineTo(-30, 30); ctx.stroke(); }
+                if (this.phase >= 3) {
+                    ctx.beginPath(); ctx.moveTo(this.w / 2, -40); ctx.lineTo(38, -20); ctx.lineTo(46, 0); ctx.lineTo(28, 20); ctx.lineTo(36, this.h / 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-10, -this.h / 2); ctx.lineTo(0, -44); ctx.lineTo(-8, -34); ctx.stroke();
+                }
+                // crown
+                ctx.fillStyle = '#facc15';
+                ctx.beginPath();
+                ctx.moveTo(-30, -this.h / 2); ctx.lineTo(-30, -this.h / 2 - 22); ctx.lineTo(-15, -this.h / 2 - 10); ctx.lineTo(0, -this.h / 2 - 26);
+                ctx.lineTo(15, -this.h / 2 - 10); ctx.lineTo(30, -this.h / 2 - 22); ctx.lineTo(30, -this.h / 2); ctx.closePath(); ctx.fill();
+                this.face(12, this.phase >= 2);
+            }
+        }
+
+        const BOSS_DEFS = {
+            treadmill: { id: 'treadmill', cls: TreadmillBoss, name: 'Treadmill 🏃', color: '#ef4444', w: 100, h: 90, speed: 3, hint: "Jump over the charge. Slam him while he's dizzy.", enrageLine: 'The belt speeds up' },
+            salad: { id: 'salad', cls: SaladBoss, name: 'Salad 🥗', color: '#10b981', w: 120, h: 96, speed: 2.2, hpMult: 0.8, hint: "Stomp the lettuce. Slam her while she's tasting.", enrageLine: 'Extra dressing' },
+            calories: { id: 'calories', cls: CaloriesBoss, name: 'Calories 🔢', color: '#8b5cf6', w: 110, h: 110, speed: 2.5, hpMult: 0.8, hint: 'Dodge the laser by changing height.', enrageLine: 'Shield up. Only slams break it.' },
+            training: { id: 'training', cls: TrainingBoss, name: 'Training 📣', color: '#f59e0b', w: 110, h: 100, speed: 2.4, hint: 'Do what he says. Nail it and he takes damage.', enrageLine: 'Drills get faster' },
+            kiran: { id: 'kiran', cls: KiranBoss, name: 'Kiran 🐙', color: '#a855f7', w: 120, h: 96, speed: 2.8, hint: 'Slam the tentacles to hurt Kiran.', enrageLine: 'Kiran is inking everything' },
+            cracker: { id: 'cracker', cls: CrackerBoss, name: 'The Cracker 🍘', color: '#e9c46a', w: 130, h: 116, speed: 3.2, hpMult: 1.8, noEnrage: true, hint: 'Final boss. 3 phases. Everything you learned.' }
+        };
+        const BOSS_ORDER = ['treadmill', 'salad', 'calories', 'training', 'kiran', 'cracker'];
+        function bossForWave(wave) { return BOSS_DEFS[BOSS_ORDER[(wave / 3 - 1) % BOSS_ORDER.length]]; }
 
         // ============================================================
         //  GAME STATE
@@ -1343,11 +2448,11 @@
             skyHazards = [];
             fireballs = [];
             if (currentWave % 3 === 0) {
-                currentBoss = new Boss(currentWave);
+                const def = bossForWave(currentWave);
+                currentBoss = new def.cls(currentWave);
                 snacks = [];
-                $('boss-hud').classList.remove('hidden');
-                $('boss-name').textContent = currentBoss.name;
-                showBanner(`WAVE ${currentWave}`, `BOSS: ${currentBoss.name}`, '#f87171');
+                $('boss-hud').classList.add('hidden'); // HP bar is drawn on the floor now so it never covers the boss
+                showBanner(`BOSS: ${currentBoss.name.toUpperCase()}`, def.hint, def.id === 'cracker' ? '#fbbf24' : '#f87171', 170);
                 audio.playSFX('boss');
             } else {
                 currentBoss = null;
@@ -1392,8 +2497,13 @@
 
         function defeatBoss() {
             const b = currentBoss;
-            score += b.wave * 500;
-            addCalories(150 + b.wave * 10, b.x + b.w / 2, b.y + b.h + 20);
+            const final = b.id === 'cracker';
+            score += b.wave * 500 * (final ? 3 : 1);
+            addCalories((150 + b.wave * 10) * (final ? 3 : 1), b.x + b.w / 2, b.y + b.h + 20);
+            skyHazards = skyHazards.filter(h => h.type !== 'hazard');
+
+            saveData.bossKills[b.id] = (saveData.bossKills[b.id] || 0) + 1;
+            writeSaveData();
             createParticles(b.x + b.w / 2, b.y + b.h / 2, '#fbbf24', 40);
             createParticles(b.x + b.w / 2, b.y + b.h / 2, '#84cc16', 30);
             addShake(25, 14);
@@ -1414,10 +2524,6 @@
             if (player.hp <= 0) triggerGameOver();
         }
 
-        function isTouchDevice() {
-            return (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 0;
-        }
-
         function initGame() {
             player.resetToDefaults();
             score = 0;
@@ -1434,7 +2540,6 @@
             $('gameover-overlay').classList.add('hidden');
             $('pause-overlay').classList.add('hidden');
             $('hud').classList.remove('hidden');
-            $('mobile-controls').classList.toggle('hidden', !isTouchDevice());
             snapAll();
             audio.startMusic();
         }
@@ -1459,7 +2564,7 @@
             gameState = 'MENU';
             audio.stopMusic();
             clearKeys();
-            ['gameover-overlay', 'pause-overlay', 'hud', 'mobile-controls', 'boss-hud'].forEach(id => $(id).classList.add('hidden'));
+            ['gameover-overlay', 'pause-overlay', 'hud', 'boss-hud'].forEach(id => $(id).classList.add('hidden'));
             currentBoss = null;
             snacks = []; skyHazards = []; fireballs = []; particles = []; floatTexts = [];
             bannerTimer = 0;
@@ -1473,7 +2578,6 @@
             audio.playSFX('gameover');
             clearKeys();
             $('hud').classList.add('hidden');
-            $('mobile-controls').classList.add('hidden');
             $('boss-hud').classList.add('hidden');
 
             const isBest = score > (saveData.bestScore || 0);
@@ -1510,7 +2614,7 @@
             if (currentBoss) {
                 const pct = Math.max(0, (currentBoss.hp / currentBoss.maxHp) * 100);
                 $('boss-hp-fill').style.width = `${pct}%`;
-                $('boss-hp-text').textContent = `${Math.max(0, Math.ceil(currentBoss.hp))} / ${currentBoss.maxHp}`;
+                $('boss-hp-text').textContent = `${currentBoss.shield ? '🛡️ ' : ''}${Math.max(0, Math.ceil(currentBoss.hp))} / ${currentBoss.maxHp}`;
             }
         }
 
@@ -1990,7 +3094,7 @@
         //  SKIN INDEX
         // ============================================================
         let indexFilter = 'all';
-        const RARITY_HEAD = { common: 'text-blue-300', rare: 'text-purple-300', mythic: 'text-pink-300', legendary: 'text-orange-300', gold: 'text-yellow-300' };
+        const RARITY_HEAD = { common: 'text-blue-300', rare: 'text-purple-300', mythic: 'text-pink-300', legendary: 'text-orange-300', gold: 'text-yellow-300', unhinged: 'unhinged-text' };
 
         // Draws Patrick wearing a skin onto a small canvas, reusing the real in-game drawing code
         function drawSkinPreview(cv, skin) {
@@ -1999,12 +3103,13 @@
             cv.width = S * dpr; cv.height = S * dpr;
             cv.style.width = S + 'px'; cv.style.height = S + 'px';
             const c = cv.getContext('2d');
-            c.setTransform(dpr * 1.15, 0, 0, dpr * 1.15, 0, 0);
+            const k = (skin.hat === 'muscles' || skin.wide) ? 0.82 : 1.15;
+            c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
             const realCtx = ctx;
             ctx = c;
             try {
                 const dummy = Object.assign(Object.create(Player.prototype), {
-                    x: 42 - 27, y: 50 - 32, w: 54, h: 64, facing: 1, bellySquash: 1,
+                    x: 48 / k - 27, y: 54 / k - 32, w: 54, h: 64, facing: 1, bellySquash: 1,
                     bellyWobbleTime: 0, isSlamming: false, invulnerableTimer: 0
                 });
                 dummy.draw(skin);
@@ -2015,7 +3120,7 @@
 
         function skinDropOdds(skin) {
             const poolSize = RARITY_POOLS[skin.rarity].length;
-            return Object.values(CASE_TIERS).map(c => ({ c, pct: c.odds[skin.rarity] / poolSize }));
+            return Object.values(CASE_TIERS).map(c => ({ c, pct: c.odds[skin.rarity] * skinWeight(skin) / poolWeight(skin.rarity) }));
         }
 
         function renderIndex() {
@@ -2041,18 +3146,21 @@
             const body = $('index-body');
             body.innerHTML = '';
 
-            [...RARITY_ORDER].reverse().forEach(r => {
-                let skins = RARITY_POOLS[r];
+            const groups = [
+                ...[...RARITY_ORDER].reverse().map(r => ({ label: RARITY_LABEL[r], head: RARITY_HEAD[r], all: RARITY_POOLS[r] }))
+            ];
+            groups.forEach(grp => {
+                let skins = grp.all;
                 if (indexFilter === 'found') skins = skins.filter(s => found.has(s.id));
                 if (indexFilter === 'missing') skins = skins.filter(s => !found.has(s.id));
                 if (!skins.length) return;
 
-                const tierFound = RARITY_POOLS[r].filter(s => found.has(s.id)).length;
+                const tierFound = grp.all.filter(s => found.has(s.id)).length;
                 const section = document.createElement('div');
                 section.innerHTML = `
                     <div class="flex items-center gap-2 mb-2">
-                        <span class="font-game ${RARITY_HEAD[r]} text-base">${RARITY_LABEL[r]}</span>
-                        <span class="text-[11px] text-slate-500 font-bold">${tierFound}/${RARITY_POOLS[r].length}</span>
+                        <span class="font-game ${grp.head} text-base">${grp.label}</span>
+                        <span class="text-[11px] text-slate-500 font-bold">${tierFound}/${grp.all.length}</span>
                         <div class="flex-1 h-px bg-slate-800"></div>
                     </div>`;
                 const grid = document.createElement('div');
@@ -2066,10 +3174,11 @@
                         : wasFound
                             ? `<span class="bg-slate-700 text-slate-200 font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md">Found · sold</span>`
                             : `<span class="bg-slate-900 text-slate-400 border border-slate-700 font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md">🔒 Never found</span>`;
+                    const caseOdds = skinDropOdds(skin).map(({ c, pct }) =>
+                        `<div class="flex justify-between text-[10px]"><span class="${c.text}">${c.emoji} ${c.name.replace(' Case', '')}</span><span class="text-slate-300 font-bold">${pct < 1 ? pct.toFixed(2) : pct.toFixed(1)}%</span></div>`).join('');
                     const odds = skin.id === 'default'
                         ? '<div class="text-[10px] text-slate-500">Starter skin, everyone has it</div>'
-                        : skinDropOdds(skin).map(({ c, pct }) =>
-                            `<div class="flex justify-between text-[10px]"><span class="${c.text}">${c.emoji} ${c.name.replace(' Case', '')}</span><span class="text-slate-300 font-bold">${pct < 1 ? pct.toFixed(2) : pct.toFixed(1)}%</span></div>`).join('');
+                        : caseOdds;
 
                     const card = document.createElement('div');
                     card.className = `p-3 rounded-2xl flex flex-col items-center text-center relative ${skin.rarityClass} ${wasFound ? '' : 'opacity-70'}`;
@@ -2230,15 +3339,11 @@
                 fb.update();
                 let consumed = false;
 
-                if (currentBoss && Math.hypot(fb.x - (currentBoss.x + currentBoss.w / 2), fb.y - (currentBoss.y + currentBoss.h / 2)) < currentBoss.w / 2 + fb.radius * 0.5) {
-                    currentBoss.hp -= fb.damage;
-                    currentBoss.hitFlash = 6;
-                    audio.playSFX('slam');
-                    createParticles(fb.x, fb.y, '#84cc16', 15);
-                    floatText(fb.x, fb.y - 20, `-${fb.damage}`, '#bef264', 20);
+                const bossBefore = currentBoss;
+                if (currentBoss && currentBoss.chiliHit(fb)) {
                     consumed = true;
-                    updateHUD();
-                    if (currentBoss.hp <= 0) defeatBoss();
+                    if (gameState !== 'PLAYING') return;
+                    if (currentBoss !== bossBefore) break; // boss died, wave reset the fireball list
                 } else {
                     // Chili farts now blast falling veggies too
                     for (let j = skyHazards.length - 1; j >= 0; j--) {
@@ -2260,23 +3365,11 @@
 
             // Boss
             if (currentBoss) {
-                const b = currentBoss;
-                b.update(player);
-
-                const overlapX = player.x + player.w * 0.8 > b.x && player.x + player.w * 0.2 < b.x + b.w;
-                const feet = player.y + player.h;
-                if (player.isSlamming && player.vy > 0 && overlapX && feet >= b.y - 5 && feet <= b.y + 45) {
-                    const dmg = b.weak ? 80 : 40;
-                    b.hp -= dmg;
-                    b.hitFlash = 8;
-                    player.vy = -12;
-                    player.isSlamming = false;
-                    audio.playSFX('slam');
-                    addShake(10, b.weak ? 12 : 7);
-                    createParticles(player.x + player.w / 2, feet, b.weak ? '#f59e0b' : '#ef4444', 20);
-                    floatText(b.x + b.w / 2, b.y - 10, b.weak ? `CRIT -${dmg}` : `-${dmg}`, b.weak ? '#fbbf24' : '#fca5a5', b.weak ? 26 : 20);
-                    updateHUD();
-                    if (b.hp <= 0) defeatBoss();
+                currentBoss.update(player);
+                if (gameState !== 'PLAYING') return;
+                // Treadmill belt drags you along the floor
+                if (currentBoss && currentBoss.conveyor && player.isGrounded && player.y + player.h >= FLOOR_Y - 1) {
+                    player.x = clamp(player.x + currentBoss.conveyor, 10, GAME_WIDTH - 10 - player.w);
                 }
             }
 
@@ -2373,6 +3466,7 @@
         function snapAll() {
             snapObj(player);
             snapObj(currentBoss);
+            if (currentBoss) { currentBoss.minions.forEach(snapObj); currentBoss.projectiles.forEach(snapObj); }
             snacks.forEach(snapObj);
             skyHazards.forEach(snapObj);
             fireballs.forEach(snapObj);
@@ -2381,19 +3475,54 @@
         }
 
         // Temporarily moves the object to its in-between position, draws it, then puts it back
-        const _saved = {};
         function drawLerp(o, alpha, drawFn) {
             if (!o) return;
             const prev = o._prev;
             if (!prev || alpha >= 1) { drawFn(o); return; }
-            for (const k in prev) { _saved[k] = o[k]; o[k] = prev[k] + (o[k] - prev[k]) * alpha; }
+            const saved = {};
+            for (const k in prev) { saved[k] = o[k]; o[k] = prev[k] + (o[k] - prev[k]) * alpha; }
             drawFn(o);
-            for (const k in prev) o[k] = _saved[k];
+            for (const k in prev) o[k] = saved[k];
         }
 
         let shakeX = 0, shakeY = 0;
 
+        // Boss HP bar lives in the floor strip, so it never covers the boss
+        function drawBossBar() {
+            const b = currentBoss;
+            if (!b || gameState === 'MENU' || gameState === 'GAMEOVER') return;
+            const w = 420, x = GAME_WIDTH / 2 - w / 2, y = FLOOR_Y + 6;
+            ctx.fillStyle = 'rgba(2,6,23,0.82)';
+            rr(x - 10, y, w + 20, 38, 10); ctx.fill();
+            ctx.strokeStyle = b.id === 'cracker' ? 'rgba(251,191,36,0.6)' : 'rgba(239,68,68,0.45)';
+            ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.font = '13px "Fredoka One", sans-serif';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = b.id === 'cracker' ? '#fbbf24' : '#f87171';
+            ctx.fillText(b.name.toUpperCase() + (b.phase ? `  ·  PHASE ${b.phase}` : '') + (b.isEnraged && !b.phase ? '  ·  ENRAGED' : ''), x, y + 11);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '800 12px Nunito, sans-serif';
+            ctx.fillText(`${b.shield ? '🛡️ ' : ''}${Math.max(0, Math.ceil(b.hp))} / ${b.maxHp}`, x + w, y + 11);
+            ctx.fillStyle = '#0f172a';
+            rr(x, y + 21, w, 10, 5); ctx.fill();
+            const pct = clamp(b.hp / b.maxHp, 0, 1);
+            if (pct > 0) {
+                const g = ctx.createLinearGradient(x, 0, x + w, 0);
+                if (b.shield) { g.addColorStop(0, '#6366f1'); g.addColorStop(1, '#a5b4fc'); }
+                else { g.addColorStop(0, '#dc2626'); g.addColorStop(0.6, '#f59e0b'); g.addColorStop(1, '#fde047'); }
+                ctx.fillStyle = g;
+                rr(x, y + 21, w * pct, 10, 5); ctx.fill();
+            }
+            if (b.phase) {
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                [0.33, 0.66].forEach(f => ctx.fillRect(x + w * f - 1, y + 19, 2, 14));
+            }
+        }
+
         function render(alpha = 1) {
+            renderAlpha = alpha;
             ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
             ctx.save();
             if (shakeTime > 0) ctx.translate(shakeX, shakeY);
@@ -2410,8 +3539,10 @@
                 if (gameState !== 'GAMEOVER') drawLerp(player, alpha, d);
                 particles.forEach(o => drawLerp(o, alpha, d));
                 floatTexts.forEach(o => drawLerp(o, alpha, d));
+                if (currentBoss && gameState !== 'GAMEOVER') currentBoss.drawOverlay();
             }
             ctx.restore();
+            drawBossBar();
             drawBanner();
         }
 
@@ -2477,23 +3608,6 @@
         MODALS.forEach(id => {
             $(id).addEventListener('click', (e) => { if (e.target.id === id) closeModal(id); });
         });
-
-        // Touch controls (pointer events work for touch AND mouse)
-        function bindTouch(id, keyName, action) {
-            const btn = $(id);
-            const down = (e) => { e.preventDefault(); if (gameState !== 'PLAYING') return; keys[keyName] = true; if (action) action(); };
-            const up = (e) => { e.preventDefault(); keys[keyName] = false; };
-            btn.addEventListener('pointerdown', down);
-            btn.addEventListener('pointerup', up);
-            btn.addEventListener('pointercancel', up);
-            btn.addEventListener('pointerleave', up);
-            btn.addEventListener('contextmenu', (e) => e.preventDefault());
-        }
-        bindTouch('btn-touch-left', 'KeyA');
-        bindTouch('btn-touch-right', 'KeyD');
-        bindTouch('btn-touch-slam', 'KeyS');
-        bindTouch('btn-touch-jump', 'KeyW', () => player.jump());
-        bindTouch('btn-touch-fire', 'KeyF', () => shootChili());
 
         syncAudioIcons();
         refreshBalances();
